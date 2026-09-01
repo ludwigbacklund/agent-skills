@@ -29,7 +29,7 @@ QA and reflection are different modes — exercising a running feature vs. readi
   in scope once per feature, as a distinct exploit-focused lens beyond per-slice review.
 - **Auto-fix or auto-create drafts.** Every Phase B action is approved by the human, item by item.
 - **Auto-drive the browser.** UI verification is offered and handed off, same rule as `/feature-implement`.
-- **Push or open a PR.** Slices already committed via `/feature-implement`'s land step; publishing the branch stays the user's call.
+- **Push or open a PR.** Slices already committed via `/feature-implement`'s land step; publishing stays the user's call.
 
 ---
 
@@ -85,7 +85,11 @@ Show the plan to the user before exercising anything. This is their chance to ad
 #### A3. Exercise
 
 - Run the full suite once on the integrated whole to catch integration breakage: `pnpm test`, `pnpm tc`, `pnpm lint` (or whatever the project uses). These are a backstop, not the point — the point is behavior.
-- For behavior/UI: **do not auto-drive the browser.** Pause and hand off — say what you'd exercise (the integration flow + the adversarial cases from the plan) and let the user choose: drive it themselves, or ask you to run the `agent-browser` skill.
+- For behavior/UI: **do not auto-drive the browser.** Pause and present what you'd exercise
+  (the integration flow + the adversarial cases from the plan). Let the user choose whether to
+  verify it themselves or authorize automated verification. When authorized, prefer an available
+  tester delegate for the bounded QA plan when suitable; otherwise use the available
+  browser/testing capability directly.
 - Walk the QA plan item by item. For anything you can check without the browser (server flows, data invariants across slices, error responses), check it.
 - **If the feature has migrations:** apply them in order on a realistic, non-empty database, start to finish. Confirm they stack cleanly (no migration assumes a shape an earlier one didn't create), the final schema matches the design, and flag any **dangling expand** — an expand→contract whose contract step was deferred and still needs a follow-up task. This is the cross-slice seam a per-slice check can't see.
 - **Run a security review on the feature's changes**—the once-per-feature security gate. Use
@@ -158,9 +162,11 @@ already swept each slice's own diff in `feature-implement`; this pass is for wha
 once the slices sit together.
 
 - Identify the commits for each in-scope slice — `/feature-implement` commits per slice, so `git log --oneline` over the range (or `git log --grep "<slice-id>"`) maps slices to commits. Ask the user for the range if it's unclear.
-- **Review the cumulative diff**—the whole feature branch (`git diff <base>..<head>`), not
-  one slice. Use the `code-review` skill when available; otherwise perform a focused,
-  report-only review of the assembled diff. Do not auto-fix; findings are *candidates* that B4
+- **Review the cumulative diff**—the whole feature commit range (`git diff <base>..<head>`),
+  whether it landed on a feature branch or directly on the default branch, not one slice. Use
+  the `code-review` skill when available. Otherwise, prefer suitable fresh-context review
+  delegation when the harness provides it, or perform a focused, report-only review directly.
+  Do not auto-fix; findings are *candidates* that B4
   triages with the user one at a time. The assembled view should specifically catch reuse,
   duplication, and inconsistencies that per-slice reviews cannot see.
 - Then add the few signals a diff-scoped reviewer under-weights, because they're about *consistency between independently-built slices* rather than the quality of any one diff:
@@ -191,7 +197,7 @@ Default to the **most pragmatic option**:
 - **Larger / cross-cutting / needs design → draft.** Refactors that touch many files, new abstractions, anything where the *proposal* needs discussion before someone picks it up.
 - **Not worth it → drop.** Acknowledged, not preserved.
 
-If the user says "fix now": make the change directly. Run `pnpm format` / `pnpm lint` / `pnpm tc` as appropriate. Report what you changed in one line per fix. Then **commit the triage fixes** the way `/feature-implement` lands a slice — a focused commit on the feature branch that references the parent — so they don't dangle in the working tree while the feature flips to `Done`. Same rules as the land step: if the user says don't commit, leave the changes for them; never push or open a PR.
+If the user says "fix now": make the change directly. Run `pnpm format` / `pnpm lint` / `pnpm tc` as appropriate. Report what you changed in one line per fix. Then **commit the triage fixes** the way `/feature-implement` lands a slice — a focused commit on the current convention-appropriate branch that references the parent — so they don't dangle in the working tree while the feature flips to `Done`. Same rules as the land step: if the user says don't commit, leave the changes for them; never push or open a PR.
 
 If the user says "draft", shape it *together* before saving. Discuss:
 - **Proposed change** — what would we actually do about it?

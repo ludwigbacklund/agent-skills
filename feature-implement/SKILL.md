@@ -77,6 +77,9 @@ Show the plan to the user. Wait for approval. Iterate if they want a different s
 
 - Move slice to `In Progress`: `backlog task edit <slice-id> -s "In Progress" --plain`.
 - Build the slice end-to-end across the layers it needs (data → server → client → tests). A slice without tests is not done — period.
+- When suitable delegation is available and worthwhile, consider handing off clearly bounded,
+  independent implementation work. Otherwise implement it directly. Keep unresolved product and
+  architectural decisions in the foreground.
 - Follow the project's conventions. Don't introduce new ones inline. If a convention is missing or wrong, surface it as a separate question; don't quietly invent one.
 - Stay inside the slice's scope. If you discover work that belongs to a future slice or a different task, capture it (mention it to the user, or note it on the parent task) — don't silently expand.
 
@@ -88,9 +91,10 @@ The acceptance criteria are the contract. For every AC, *actually verify* before
 - Type check: `pnpm tc`.
 - Lint: `pnpm lint`.
 - **Review the slice diff.** Use the `code-review` skill on the changes this slice introduced
-  when it is available. Otherwise perform a focused, report-only bug and quality review of the
-  slice diff. Default to one broad external review after the implementation has stabilized. If
-  it finds material issues, use targeted re-reviews limited to those findings and their fixes;
+  when it is available. Otherwise, prefer suitable fresh-context review delegation when the
+  harness provides it, or perform a focused, report-only bug and quality review directly. Default
+  to one broad external review after the implementation has stabilized. If it finds material
+  issues, use targeted re-reviews limited to those findings and their fixes;
   repeat only while material findings remain. After a clean review, inspect small follow-up
   changes directly unless they introduce a new correctness, security, or contract risk—do not
   rerun a broad review merely because the diff changed. Surface findings and triage them *with
@@ -99,8 +103,13 @@ The acceptance criteria are the contract. For every AC, *actually verify* before
   only; the security pass runs once on the assembled feature in `feature-settle`, not per
   slice.
 - **Migration safety** *(only if this slice has a migration).* Run the project's migration command up **and** down on a non-empty dataset (check `package.json` / `AGENTS.md` for the command). Confirm it's reversible — or the forward-only reason is recorded — the backfill populates correctly, and code from *before* this slice still works against the new schema (the compatibility window). If the project has no seed data, treat the down/backfill check as a hand-off like UI verification: say what you'd exercise and let the user run it.
-- For UI changes: **do not auto-drive the browser**. Pause and hand off — say what you'd exercise (happy path + the obvious edge cases tied to the ACs) and let the user choose: drive it themselves, or ask you to run the `agent-browser` skill. Code-level checks (tests, types, lint) still run; only UI verification waits.
-- Walk each AC explicitly. When an AC is met, mark it: `backlog task edit <slice-id> --check-ac <index> --plain`. ACs that depend on UI behavior stay unchecked until verified — by the user or by an explicit agent-browser run they requested.
+- For UI changes: **do not auto-drive the browser**. Pause and say what you'd exercise (happy
+  path + the obvious edge cases tied to the ACs). Let the user choose whether to verify it
+  themselves or authorize automated verification. When authorized, prefer an available tester
+  delegate for the bounded QA plan when suitable; otherwise use the available browser/testing
+  capability directly. Code-level checks (tests, types, lint) still run; only UI verification
+  waits.
+- Walk each AC explicitly. When an AC is met, mark it: `backlog task edit <slice-id> --check-ac <index> --plain`. ACs that depend on UI behavior stay unchecked until verified — by the user or by authorized automated verification.
 
 If an AC isn't met, fix the gap or surface why it can't be met — don't paper over it.
 
@@ -146,9 +155,9 @@ After notes are written, flip the slice: `backlog task edit <slice-id> -s "Done"
 A slice marked `Done` but left uncommitted is a lie waiting to happen — the next slice builds on top of an uncommitted working tree and the history blurs. So the default tail of this skill is to **commit the slice**. Running this skill is the opt-in; you don't need to ask again.
 
 - **Commit the slice as one atomic unit** — the code *and* the ticket changes from step 6 (the implementation notes and the `Done` flip). One slice = one commit, so a later `/feature-settle` can read a clean per-slice history.
-- **Branch first if you're on the default branch.** Never commit a slice straight onto `main`/`master` — create a feature branch first (per the repo's branching convention).
+- **Follow the repository's branching convention.** Check `AGENTS.md`, contributor docs, and the user's explicit direction. If the repo convention permits direct commits on its default branch, stay on `main`/`master`; do not create an unnecessary feature branch. If the repo expects branch/PR work, create or use a feature branch before committing. If the convention is unclear, ask rather than changing branches automatically.
 - **Message follows the project's commit conventions** (subject style, any required trailer). Reference the slice in the subject so the commit maps back to the ticket.
-- **Stop at the commit.** Do not push and do not open a PR unless the user explicitly asks — publishing the branch stays the user's call.
+- **Stop at the commit.** Do not push and do not open a PR unless the user explicitly asks — publishing remains the user's call.
 - **Skippable.** If the user says "don't commit this one," leave the slice built-and-`Done` in the working tree, same as before.
 
 Report the commit (sha + subject) in the hand-off.
@@ -157,7 +166,9 @@ Report the commit (sha + subject) in the hand-off.
 
 - Summarize what was built (1–2 sentences) and report the commit (sha + subject), or note it was left uncommitted if the user skipped the land step.
 - Surface anything the user should know: skipped ACs, deferrals, surprises.
-- If the slice has UI: **explicitly note that browser verification is still pending** and offer to run `agent-browser` if they'd like — don't assume.
+- If the slice has UI: **explicitly note when browser verification is still pending** and offer
+  the available verification options without assuming a tester delegate or browser capability
+  exists.
 - Suggest the natural next step: *"Run `/feature-implement <next-slice-id>` for the next slice"*, or — if all sibling slices are done — *"this was the last slice; run `/feature-settle <parent-id>` to QA the assembled feature, triage friction, and close it out."* — but only after the user has verified the UI (or declined to).
 - If a Friction section was captured, mention it carries into settle: *"Friction noted on the slice — `/feature-settle` will pick it up in its triage phase once the feature's done."*
 
