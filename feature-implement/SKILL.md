@@ -68,6 +68,7 @@ Write a short plan (a few sentences, not a doc):
 - **Files** to create or edit.
 - **Pattern** being followed — point to the existing example you surveyed.
 - **Test strategy** — what gets unit-tested vs integration vs manual.
+- **UI direction** — *for UI slices only:* describe the primary user flow, primary action, and intended visual hierarchy. Anchor the direction to an excellent existing screen or a user-provided reference, using the project's components and design tokens. Flag fundamental workflow uncertainty before coding; polish cannot fix the wrong interaction model.
 - **Decisions to flag** — anywhere there's real choice or uncertainty.
 - **Migration** — *only if this slice changes an existing schema or public contract.* State the approach: additive / expand→contract, the backfill plan for any new required field, and what stays compatible with old code and old data during rollout. A destructive change (drop / rename / narrow) must say why the old shape is safe to remove now, or defer that removal to a later slice. Omit this line entirely for brand-new tables/contracts.
 
@@ -83,7 +84,23 @@ Show the plan to the user. Wait for approval. Iterate if they want a different s
 - Follow the project's conventions. Don't introduce new ones inline. If a convention is missing or wrong, surface it as a separate question; don't quietly invent one.
 - Stay inside the slice's scope. If you discover work that belongs to a future slice or a different task, capture it (mention it to the user, or note it on the parent task) — don't silently expand.
 
-### 5. Verify
+### 5. Refine UI, then verify
+
+#### UI refinement loop (UI slices only)
+
+Treat the first functional UI as a draft. In-scope usability refinement is part of implementation, not scope creep.
+
+**Aim for a considered product experience, not merely a usable implementation.** Make the main task obvious, give supporting information appropriate emphasis, and remove unnecessary choices, controls, and visual noise. Prefer the simplest coherent interaction while keeping required capabilities discoverable and accessible. Layout, typography, spacing, copy, and feedback should work together—not feel like separately assembled parts. Elegance means clarity and restraint, not extra decoration or fashionable styling.
+
+Ask not only “What is broken or awkward?” but **“Does this feel deliberately designed around the user's task? What could we remove, combine, or simplify to make it feel inevitable?”** The target is a clear, cohesive experience, not merely passing functional criteria.
+
+- **Inspect and use the running UI** in the browser with realistic, safely seeded content; screenshots or source review alone are insufficient. Cover relevant loading, empty, error, long-content, and narrow-viewport states, plus keyboard navigation and visible focus. Follow the browser safety and access rules below; unavailable access blocks completion.
+- **Critique before editing.** Prefer the `design-critic` delegate when available, or a suitably capable design reviewer; otherwise critique directly. Supply the user's task, intended flow, constraints, product reference, and rendered screenshots plus browser access when available (delegates do not inherit conversation images). Ask the reviewer to evaluate independently against the brief and observed UI, treating the implementer's rationale as context rather than evidence that a choice is correct. Request up to five prioritized, evidence-backed findings and concrete remedies, distinguishing material issues from optional taste preferences. Explicitly allow no findings; do not manufacture changes. Ask the reviewer to identify what should be preserved. Assess purpose, simplicity, hierarchy, visual coherence, copy, feedback, accessibility, and product consistency. A tester may exercise flows and collect evidence, but its verdict does not establish design quality. The implementing agent owns final design decisions and evaluates findings against the brief; use targeted re-reviews after fixes, not repeated broad redesigns.
+- **Fix the highest-impact in-scope issues** without asking for each adjustment that preserves agreed behavior and conventions. Ask before changing product behavior, scope, contracts, architecture, or design conventions; route fundamental workflow changes back to shaping.
+- **Use up to three critique-and-refine passes.** End every changed pass with browser reinspection; stop early when no meaningful usability or visual-quality issues remain. If material issues remain at the budget limit, keep the slice `In Progress` and report the needed work or decision. Record minor remaining concerns as explicit deferrals.
+- **Run final checks and diff review** against the refined implementation. Reuse browser evidence for unchanged UI; recheck affected flows after subsequent fixes.
+
+#### Final verification
 
 The acceptance criteria are the contract. For every AC, *actually verify* before checking it off — don't mark complete based on intent.
 
@@ -164,6 +181,8 @@ Report the commit (sha + subject) in the hand-off.
 
 ### 8. Hand off
 
+- For UI slices, report key improvements from refinement and any remaining UI concerns.
+
 - Summarize what was built (1–2 sentences) and report the commit (sha + subject), or note it was left uncommitted if the user skipped the land step.
 - Surface anything the user should know: skipped ACs, deferrals, surprises.
 - If the slice has UI: **explicitly note when browser verification is still pending** and offer
@@ -173,6 +192,8 @@ Report the commit (sha + subject) in the hand-off.
 - If a Friction section was captured, mention it carries into settle: *"Friction noted on the slice — `/feature-settle` will pick it up in its triage phase once the feature's done."*
 
 ## Anti-patterns
+
+- ❌ Treating a functional UI as finished without browser-based critique and refinement, or substituting decorative changes for fixing task friction.
 
 - ❌ Implementing without reading the slice's acceptance criteria. They are the spec.
 - ❌ Implementing multiple slices in one invocation. One slice at a time.
