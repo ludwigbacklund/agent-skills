@@ -80,9 +80,17 @@ EOF
 
 Use the heredoc form so newlines and markdown survive. The `--plain` flag makes the output parseable so you can extract the task ID.
 
+Land the new planning artifact before handing off so later worktrees can inherit it:
+
+- Follow the repository's branch and commit conventions. If they are unclear, ask before changing branches.
+- Commit only the backlog files created or changed by this invocation; never sweep unrelated working-tree changes into the commit.
+- Reference the parent task ID in the commit subject. Do not push or open a PR.
+- If the user asked not to commit, leave the task saved locally and explicitly warn that isolated worktrees will not see it until it is committed.
+
 Report back to the user with:
 - The task ID (e.g. `task-12`)
 - The file path under `backlog/tasks/`
+- The planning commit SHA + subject, or that it remains uncommitted
 - The natural next step: *"When you're ready, run `/feature-shape <task-id>` to design the skeleton and slice it."*
 
 ## Anti-patterns
@@ -94,3 +102,4 @@ Report back to the user with:
 - ❌ Treating the interview as a fixed N rounds — stop when aligned, not when a counter hits zero.
 - ❌ Running `backlog init` without asking first — it modifies the repo.
 - ❌ Accepting vague success criteria ("it should be better"). Push for something observable.
+- ❌ Leaving the brief uncommitted without warning; later isolated worktrees branch from committed state.

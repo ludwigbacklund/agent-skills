@@ -1,13 +1,11 @@
 ---
 name: feature-shape
-description: Shape a spec'd feature into a thin skeleton design plus vertical, independently shippable slices. Two phases in one skill with a mandatory pause between them—Phase A produces the skeleton, the agent pauses and asks before continuing, and Phase B does the slicing. Use after feature-spec and before feature-implement. Triggers include "shape this feature", "design and slice this task ID", or an explicit /feature-shape invocation.
+description: Shape a spec'd feature into a thin skeleton design plus vertical, independently shippable slices. Phase A produces the skeleton, then Phase B slices it in the same run unless the user asks to pause. Use after feature-spec and before feature-implement. Triggers include "shape this feature", "design and slice this task ID", or an explicit /feature-shape invocation.
 ---
 
 # /feature-shape — Skeleton + Slicing (two-phase)
 
-Take a feature that's already been spec'd and shape it into (a) a thin cross-slice skeleton and (b) a set of vertical, independently shippable slices. The two phases share a litmus discipline but are separated by a mandatory pause — Phase A saves the skeleton and asks before continuing; Phase B does the slicing.
-
-The pause is the point. It forces the skeleton to settle before slicing decisions are anchored to it, and keeps each phase's conversation focused.
+Take a feature that's already been spec'd and shape it into (a) a thin cross-slice skeleton and (b) a set of vertical, independently shippable slices. The two phases share a litmus discipline and normally run back-to-back: Phase A saves the approved skeleton, then Phase B slices it. Pause between them only when the user explicitly asks or foundational decisions remain unresolved.
 
 ## When to use
 
@@ -15,7 +13,7 @@ The pause is the point. It forces the skeleton to settle before slicing decision
 - The task should already have a brief from `/feature-spec`. If it doesn't, redirect to `/feature-spec` first.
 - Comes after `/feature-spec`, before `/feature-implement`.
 - The skill auto-detects which phase to run based on the parent task's state:
-  - No `## Design` section → run **Phase A (skeleton)**, then pause.
+  - No `## Design` section → run **Phase A (skeleton)**, then continue to **Phase B**.
   - Has `## Design` but no child slices → jump straight to **Phase B (slicing)**.
   - Both exist → ask whether to revise the skeleton, re-slice, or stop.
 
@@ -143,21 +141,14 @@ EOF
 
 If revising an existing design, replace the previous `## Design` section rather than stacking a new one.
 
-#### A6. Pause and ask — mandatory
+#### A6. Continue to slicing
 
-This is the pause point. Do not slide into slicing.
+Once the approved skeleton is saved:
 
-- Confirm the skeleton landed (task ID + path).
-- Summarize what was saved in 1–2 lines.
-- Ask the explicit pause question:
-
-  > _"Skeleton saved. Want me to keep going and slice it now, or pause here so you can sit with it first?"_
-
-- **Wait for the user's answer.** Do not volunteer slice candidates. Do not list what Phase B would do. Do not preempt the user's decision with "I'd recommend continuing" or similar nudges.
-- If the user says "go" / "continue" / "slice it" → proceed to Phase B in the same conversation.
-- If the user says "wait" / "hold" / "later" → stop. Tell them they can re-invoke `/feature-shape <task-id>` whenever they're ready; the skill auto-detects that the skeleton exists and jumps straight to Phase B.
-
-The default disposition is to respect the pause. If the user is silent or non-committal, treat that as "pause" and stop — don't proceed on weak signal.
+- Confirm it was saved (task ID + path) and summarize it in 1–2 lines.
+- Continue directly to Phase B in the same run; the `/feature-shape` invocation authorizes both phases.
+- Pause only if the user explicitly asks to stop or a foundational decision remains unresolved. On re-entry, the skill detects the saved skeleton and jumps straight to Phase B.
+- If pausing after saving the skeleton, land that planning change using the same rules as **B6. Land the plan** so a later worktree can see it.
 
 ---
 
@@ -195,7 +186,7 @@ Each slice touches every layer it needs, and each ships something a user could t
 
 Walk the brief and skeleton and propose **1–5 candidate slices**. Aim small — a slice that's "the whole feature minus polish" is not a slice, it's the feature.
 
-A **single slice is a valid outcome** when the feature is naturally one thin end-to-end cut and splitting it further would only produce horizontal layers or scaffolding. Don't manufacture multiple slices to hit a quota — if the litmus test only justifies one, propose one and say so. The dependency graph and parallel-fan-out steps below simply become no-ops in that case.
+A **single slice is a valid outcome** when the feature is naturally one thin end-to-end cut and splitting it further would only produce horizontal layers or scaffolding. Don't manufacture multiple slices to hit a quota — if the litmus test only justifies one, propose one and say so. The dependency graph and parallel-eligibility report simply become no-ops in that case.
 
 For each candidate, write down:
 
@@ -218,39 +209,36 @@ Examples of "riskiest assumption":
 
 Later slices add capability now that the foundation is validated.
 
-#### B4. Reflect back (slicing + dependencies)
+#### B4. Reflect back (slicing + dependencies + acceptance criteria)
 
 Present the proposed slicing in order. **Infer the dependency graph yourself** — for each slice, work out which prior slices it actually needs (extends an entity, reuses a new helper, builds on a new endpoint) and which it doesn't. Don't default to sequential; analyze the real code dependencies based on the design and what each slice delivers.
 
-> "Proposed slicing:
->
-> 1. **Slice 1: [title]** — [what it delivers]. Validates [risky assumption].
-> 2. **Slice 2: [title]** — [what it delivers]. Depends on Slice 1 ([reason — extends the entity / reuses the new endpoint]).
-> 3. **Slice 3: [title]** — [what it delivers]. Depends on Slice 1 only — independent of Slice 2 ([reason]).
->
-> Each slice is mergeable on its own. Anything off? Want to merge, split, reorder, or cut any? Anything wrong about the dependencies?"
-
-Iterate until the user approves the slicing and the inferred graph. Common adjustments:
-
-- Combining two slices that together feel like one thin shippable unit.
-- Splitting a slice that's secretly two pieces of value.
-- Reordering to put a riskier slice first.
-- Cutting a slice that turns out to be premature.
-- Correcting a missed code dependency.
-
-Record the approved dependency graph for use in B6.
-
-#### B5. Define acceptance criteria
-
-For each approved slice, draft 2–4 acceptance criteria. Each AC must be:
+For each slice, include 2–4 acceptance criteria. Each AC must be:
 
 - **Observable** — a tester (or you) can check it against the running system.
 - **Scoped to this slice** — not a criterion for the whole feature.
 - **Behavior, not implementation** — _"user sees X"_, not _"function returns Y"_.
 
-Show the ACs to the user before saving. One last chance to challenge them.
+> "Proposed slicing:
+>
+> 1. **Slice 1: [title]** — [what it delivers]. Validates [risky assumption].
+>    - AC: [observable behavior]
+>    - AC: [observable behavior]
+> 2. **Slice 2: [title]** — [what it delivers]. Depends on Slice 1 ([reason]).
+>    - AC: [observable behavior]
+>    - AC: [observable behavior]
+>
+> Each slice is mergeable on its own. Anything off in the scope, order, dependencies, or acceptance criteria? Want to merge, split, reorder, or cut any?"
 
-#### B6. Save
+Use this as a **single approval gate** for the slices, dependency graph, and ACs. Iterate as needed, then record the approved graph and criteria for B5. Common adjustments:
+
+- Combining two slices that together feel like one thin shippable unit.
+- Splitting a slice that's secretly two pieces of value.
+- Reordering to put a riskier slice first.
+- Cutting a slice that turns out to be premature.
+- Correcting a missed code dependency or acceptance criterion.
+
+#### B5. Save
 
 For each slice (in order), create a child task. Slices that depend on prior slices reference them with `--depends-on` — the prior slice must already exist, which is why we create in order.
 
@@ -276,9 +264,22 @@ EOF
 
 Omit `--depends-on` for slice 1 (no prior) and for any slice the inferred graph marks as independent of all priors. Use the dependency graph captured in B4.
 
-Create slices in the intended order so child IDs reflect that order, and so `--depends-on` references resolve. Report back with:
+Create slices in the intended order so child IDs reflect that order, and so `--depends-on` references resolve.
+
+#### B6. Land the plan
+
+Commit the approved parent design and child-slice task files before implementation begins. This makes the plan a durable baseline that isolated worktrees can inherit.
+
+- Follow the repository's branch and commit conventions. If they are unclear, ask before changing branches.
+- Commit only backlog artifacts changed by this shaping run; do not include unrelated working-tree changes.
+- Reference the parent task ID in the commit subject. Report the SHA + subject.
+- Do not push or open a PR.
+- If the user asked not to commit or the commit fails, stop after shaping. The plan remains saved locally, but `/feature-implement` must not begin until it is committed.
+
+Report back with:
 
 - The list of created task IDs (in order), with their dependency graph.
+- The planning commit SHA + subject.
 - A summary of which slices can be implemented in parallel right now (those with no pending dependencies).
 - The natural next step: _"Run `/feature-implement <slice-id>` to start on slice 1, or fan out parallel slices in worktrees once their dependencies clear."_
 
@@ -299,12 +300,11 @@ Create slices in the intended order so child IDs reflect that order, and so `--d
 - ❌ Letting the as-is survey become prescription. Surveying ≠ committing to preserve.
 - ❌ Changing an existing column or public contract in the skeleton without a compatibility strategy. Renames and drops break old code mid-rollout — decide expand→contract here, where the cross-slice plan lives.
 
-**The pause:**
+**The phase transition:**
 
-- ❌ Sliding from Phase A directly into Phase B without stopping. The pause is the whole point.
-- ❌ Phrasing the pause question as a nudge ("Ready to slice now?" assumes yes). Use the neutral framing in A6.
-- ❌ Listing candidate slices in the Phase A wrap-up as a "preview". That preempts the pause.
-- ❌ Reading non-committal answers as "go". When in doubt, treat silence as "pause."
+- ❌ Stopping after an approved skeleton when no decision is unresolved. Continue into slicing by default.
+- ❌ Requiring a second approval for acceptance criteria after the user just approved the slice structure. Review both together once.
+- ❌ Continuing when the user explicitly asked to pause or a foundational decision is unresolved.
 
 **Phase B (slicing):**
 
@@ -318,3 +318,4 @@ Create slices in the intended order so child IDs reflect that order, and so `--d
 - ❌ Saving slices before the user has approved both the slicing and the ACs.
 - ❌ Silently stacking new slices on top of existing ones when the user re-runs the skill.
 - ❌ Defaulting to "all sequential" without analyzing what each slice actually needs from prior slices.
+- ❌ Starting implementation or worktree fan-out before the approved design and slice graph are committed.
