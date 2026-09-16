@@ -1,71 +1,39 @@
-# Shared feature tracking conventions
+# Shared tracking and completion rules
 
-Read this reference at the start of every feature skill. It defines storage and synchronization, not a new tracker. The four feature skills preserve the same brief → approved design → slices → verified implementation → QA/triage trail regardless of backend. Install these four skills together; the other three reference this file.
+Read at the start of each feature skill. Install the four feature skills together; they share this file.
 
-## Resolve once, reuse across phases
+## Follow the project
 
-1. Read project instructions (`AGENTS.md` and linked guidance), existing feature/task artifacts, and available tracking integrations. Prefer the project's declared source of truth, not whichever CLI happens to be installed. An existing task reference helps identify its backend but does not authorize migrating it.
-2. Reuse an existing tracking mapping. If multiple systems have different roles, identify the authoritative location for each artifact. If conventions conflict, the backend is ambiguous, or the project has no tracker, ask once before creating anything. Offer the project's existing document/checklist convention where appropriate; do not initialize Backlog or introduce a second tracker silently.
-3. Check tool access and supported operations using the integration's instructions/help. Use the available CLI, MCP, API, or repository files; do not invent commands. Missing access blocks affected operations—do not silently fall back to another store or claim a write succeeded.
-4. Persist the mapping in the project's established workflow documentation, or a clearly labeled `Tracking conventions` section on the parent feature. With no established location, agree on one with the user. Resolve it before writes; when creating the first parent, include the mapping there. Pass its location and stable parent reference to every delegated agent. Later phases load it rather than independently guessing.
+Use the tracker and tools named in project instructions or established by existing work—Backlog, hosted issues, or ordinary repository documents all work. Ask if the choice is unclear or none exists; don't introduce or migrate a tracker silently. Use tool help rather than inventing commands. Missing access blocks the affected step.
 
-A concise mapping must identify:
+Reuse the project's conventions. Record only missing decisions that later agents need, in existing workflow docs or the parent feature; no new configuration document or exhaustive mapping is required.
 
-- **Source of truth and access:** backend/project, authoritative artifact locations, tools, and mapping location.
-- **References:** stable parent/slice references (ID, URL, or repository path plus anchor), how to list children, and how dependencies are represented.
-- **Lifecycle:** equivalents of not started, in progress, complete, and reopened; what cancelled/out-of-scope means. Skill labels such as `Done` are semantic, not literal status strings. Never equate cancelled with successfully implemented.
-- **Content:** brief, approved design, slice scope, individually identifiable acceptance criteria and completion evidence, decisions, deferrals, friction, QA verdict/tested revision, and triage disposition locations.
-- **Follow-ups:** where approved drafts/deferred items live and how they become actionable work.
-- **Durability:** Git-local or remote/mixed storage, approved planning baseline location/version, implementation revision links, and exact metadata-only repository paths (empty when all tracking is remote).
+Keep a durable trail: parent brief and approved design → ordered slices with scope, criteria, dependencies, and status → implementation evidence → final QA and follow-ups. Use native fields when available; otherwise stable links, sections, and checklists suffice. A slice can be a document section, not necessarily a separate issue. Use project status names; “Done” here means successfully completed, not cancelled.
 
-## Equivalent representations
+Read before editing, preserve unrelated content, and confirm saves. Reuse existing work on reruns. After a failed create, check whether it succeeded before retrying; don't duplicate issues or overwrite concurrent changes.
 
-Use native fields when available. Otherwise use clearly labeled sections, explicit stable links, and checklists in the existing artifacts:
+## Save approved plans
 
-| Workflow concept | Without a native field |
-| --- | --- |
-| Parent and children | Parent maintains ordered slice links; each slice links back to parent |
-| Dependency | Slice lists stable prerequisite references; parent records the approved graph |
-| Acceptance criteria | Individually identifiable checklist entries with verification evidence; match by identity/text, not a stale list index |
-| Decisions, deferrals, friction | Labeled sections or linked records readable by later phases |
-| Draft/follow-up | Project's deferred-work document, draft issue, or explicitly deferred task, linked to its originating feature |
-| QA | Record verdict, checks/findings, tested code revision, security outcome, and dispositions together |
+Before implementation, preserve the approved brief, design, slice criteria, and dependency graph so later agents can retrieve the same plan:
 
-A slice may be a section in one document rather than a separate issue, provided it has a stable reference, scope, criteria, dependencies, and lifecycle. Do not manufacture tracker entities merely to mimic Backlog. Missing native features are acceptable; missing information or unverifiable gates are not.
+- **Repository files:** selectively commit changed planning files and give implementation worktrees that commit.
+- **Remote records:** save an approved history/version reference, or a durable snapshot using the project's document convention. A mutable issue link alone doesn't preserve approval; ask where to save a snapshot if necessary.
+- **Both:** save each part appropriately and link them, without creating competing sources of truth.
 
-Preserve existing content when editing. Read before writing, update only the intended fields/sections, and read back to confirm. Before retrying a create after failure, search for the artifact already created. On reruns reuse existing children, follow-ups, and notes; reconcile discrepancies instead of duplicating them. Respect concurrent changes and stop on conflicting edits. Tracker publication/notifications follow project and user authorization; no tracker convention grants permission to push code or open PRs.
+Report the saved reference. If saving/committing fails or the user declines the required commit, report the blocker rather than starting implementation. Material plan changes need renewed approval. Give delegates the parent, slice, and approved-plan references.
 
-## Planning baseline and worktrees
+## Finish truthfully
 
-Before implementation or fan-out, preserve the approved brief, design, slice scope/criteria, and dependency graph as a durable baseline:
+Follow project branch/commit conventions; ask when unclear. Commit verified work by default, including only changes from this task. Never push or open a PR without explicit permission. If the user declines a commit or required verification is blocked, keep the task open and say what remains.
 
-- **Git-local:** selectively commit the changed planning artifacts, excluding unrelated changes. Record the commit and make it reachable in implementation worktrees.
-- **Remote:** save and read back the approved artifacts. Record their immutable version/history references, or a durable snapshot of the approved content when the backend has no version history. A mutable issue URL alone is not an approved baseline. Use an existing project-approved snapshot location; ask if none exists.
-- **Mixed:** satisfy both requirements for the respective artifacts and link them. Do not duplicate the live source of truth.
+- **Local task files:** commit verified code and completion notes/status together. If the commit fails, restore the task's open state and report failure.
+- **Remote tasks:** commit verified code first, then save evidence and the implementation revision, and mark complete last. Read back to confirm. On failure, report “code committed; tracker update pending,” keep completion blocked, and retry only missing updates after checking current state. Leave or restore the task to an open state when possible; don't undo a concurrent user's changes.
+- Respect project merge/publication requirements: retain an intermediate state if those gates aren't met. A local commit doesn't override them.
 
-Every agent must be able to load the mapping and approved baseline. Give agents their references explicitly; shared remote accessibility does not imply a local commit. Material plan changes require the relevant approval again and an updated baseline.
+Record which implementation commit belongs to each slice, through tracker links or a commit subject containing its stable reference. Local completion metadata can be identified by the commit containing it; don't try to embed a commit's own SHA in itself. Before building on a dependency or settling the feature, confirm its completed state **and** that its implementation is present in this checkout (`git merge-base --is-ancestor <revision> HEAD`). After squash/rebase/cherry-pick, verify the integrated equivalent; ask if ambiguous. Status or a metadata-only commit is not implementation evidence.
 
-## Implementation evidence and completion
+Apply the same save/read-back rules to QA and follow-ups. Close the parent only after required evidence and approved follow-ups are saved. Commit local settlement metadata selectively; for remote records, close last. Failed saves never count as successful completion.
 
-A completed tracker state does not prove code is present. Record a stable slice-to-implementation mapping using a commit/revision or an unambiguous development/PR link that resolves to the actual integrated revision. Commit subjects containing the slice reference are a discovery fallback, not the only allowed mapping. Verify the resolved revision is an ancestor of the checkout's `HEAD`; confirm that the mapping identifies the slice's implementation, not just a metadata commit. With squash/rebase/cherry-pick, resolve and verify the integrated equivalent and update the mapping rather than accepting an unreachable old SHA. Ask if evidence is ambiguous. A merged PR label alone is insufficient.
+## Reuse QA only when still valid
 
-- **Git-local completion:** after verification and review, commit code plus relevant task/AC/notes changes together where possible. The resulting commit identifies that state; don't try to embed its own SHA inside itself. Any later revision-link update is metadata-only and must not obscure which commit contains the implementation.
-- **Remote/mixed completion:** commit verified code (and any local metadata that can truthfully be recorded), then update the remote artifact with criteria evidence, decisions/deferrals/friction, implementation revision, and completed state. Read back before reporting synchronized completion. Git and a remote tracker are not atomic. If synchronization fails, report “code committed; tracker update pending” with revision and outstanding operations; do not claim full completion or allow dependent fan-out until reconciled. Resume by reading current state and retry only missing updates. Do not roll back good code merely to simulate atomicity.
-- Preserve the project's integration rules. No automatic push or PR creation. If its required completion transition depends on publication/merge the user has not authorized, keep the mapped intermediate state, record local evidence, and report the blocked transition.
-
-The same read-back and failure rules apply to saving QA, creating approved follow-ups, and closing the parent. Never close with unresolved blockers or missing required verification. Do not overwrite a concurrent reopening.
-
-## QA freshness
-
-Record the tested implementation revision. Reuse QA only when no behavior-affecting content changed between it and the current checkout. Inspect committed differences, staged/unstaged changes, and untracked files. Exclude only mapped paths confirmed to contain solely tracking metadata; never exclude code, migrations, configuration, test fixtures, or executable scripts because they share a tracker directory. With remote-only tracking there may be no paths to exclude. Scope/criteria/design changes also invalidate affected QA even if code is unchanged; compare against the approved baseline. Missing or ambiguous evidence requires fresh verification.
-
-## Backlog.md mapping (only when the project uses it)
-
-Backlog remains supported, not the default for unrelated projects. Follow the installed version's help and project conventions:
-
-- `backlog task view <id> --plain` / `backlog task list --plain`: read/discover tasks; `backlog task list -p <parent-id> --plain`: children.
-- `backlog task create "<title>" -d "<description>"`: parent; child creation adds `-p <parent-id>`, repeatable `--ac "<criterion>"`, and `--depends-on <id-or-comma-list>` for actual prerequisites. Preserve a parent backlink in the description where existing tasks use it.
-- `backlog task edit <id> -s "<mapped-status>"`: lifecycle; `--check-ac <index>`: criterion completion after rereading its current text/index. Follow installed help for description and notes edits; preserve unrelated sections.
-- Keep brief/design in the parent and scope/ACs in children. Use `Decisions`, `Deferrals`, `Friction`, and `QA` sections or existing equivalent conventions.
-- Use the installed draft operations for approved follow-ups if the project uses drafts; otherwise follow its deferred-task convention. Do not assume draft promotion syntax.
-- `backlog/tasks/` and `backlog/drafts/` are typical Git-local metadata locations, not blanket exclusions. Discover actual paths/configuration and selectively commit changed artifacts. Verify which exact files are metadata-only before excluding them from QA diffs.
+Save the tested code revision and the plan it was checked against. Reuse a verdict only if behavior and requirements are unchanged: inspect committed, staged, unstaged, and untracked changes, plus scope/design/criteria changes in the tracker. Pure tracking bookkeeping may be ignored, but never exclude a whole tracker directory without checking that it contains no behavior-affecting files. If evidence is missing, ambiguous, or stale, verify again.

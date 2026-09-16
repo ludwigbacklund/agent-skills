@@ -1,298 +1,99 @@
 ---
 name: feature-shape
-description: Shape a spec'd feature into a thin skeleton design plus vertical, independently shippable slices. Phase A produces the skeleton, then Phase B slices it in the same run unless the user asks to pause. Use after feature-spec and before feature-implement. Triggers include "shape this feature", "design and slice this planning artifact", or an explicit /feature-shape invocation.
+description: Turn an approved feature brief into a thin cross-slice design and approved vertical slices with acceptance criteria. Use after feature-spec for /feature-shape, "shape this feature," or "design and slice this plan."
 ---
 
-# /feature-shape — Skeleton + Slicing (two-phase)
+# /feature-shape — Thin design and vertical slices
 
-Take a feature that's already been spec'd and shape it into (a) a thin cross-slice skeleton and (b) a set of vertical, independently shippable slices. The two phases share a litmus discipline and normally run back-to-back: Phase A saves the approved skeleton, then Phase B slices it. Pause between them only when the user explicitly asks or foundational decisions remain unresolved.
+## Start
 
-## When to use
+Read `../feature-spec/references/tracking-conventions.md` and follow the project's instructions and tracking conventions.
 
-- User invokes `/feature-shape <parent-ref>` (or just `/feature-shape` — then ask which parent artifact).
-- The parent artifact should already have a brief from `/feature-spec`. If it doesn't, redirect to `/feature-spec` first.
-- Comes after `/feature-spec`, before `/feature-implement`.
-- The skill auto-detects which phase to run based on the parent artifact's state:
-  - No `## Design` section → run **Phase A (skeleton)**, then continue to **Phase B**.
-  - Has `## Design` but no child slices → jump straight to **Phase B (slicing)**.
-  - Both exist → ask whether to revise the skeleton, re-slice, or stop.
+Load the supplied parent reference, or ask the user which parent to shape. Read its approved brief and existing design and children. If there is no approved brief, use `/feature-spec` first.
 
----
+On reruns, reuse and reconcile existing design, slices, links, and notes; never silently duplicate them. If design exists but slices do not, continue with slicing. If both exist, ask whether to revise or stop.
 
-## Phase A — Skeleton
+Normally complete both phases in one run. Pause only when the user asks or a foundational decision is unresolved.
 
-### Litmus test (skeleton)
+## Phase A: thin cross-slice skeleton
 
-For every candidate decision, ask:
+A skeleton contains only decisions that multiple slices must share. For each candidate ask:
 
-> _"If I cut any single slice from this feature, would the remaining slices still need this decision?"_
+> If any one slice were removed, would the remaining slices still need this decision?
 
-- **Yes** → foundational, include it.
-- **No** → push it down to `/feature-implement`.
+If no, defer it to that slice's implementation. Keep UI details, file layout, component names, endpoint internals, and one-slice choices out.
 
-The whole point is to leave room for each slice to carry its own weight. **Locking in decisions that are too broad too early is the failure mode this phase exists to prevent.**
+### Ground in the current system
 
-### What goes in
+Do a short, targeted code survey before proposing changes:
 
-- **Data model** — entities, relationships, key invariants. Schema shape, not field-level details unless they encode an invariant.
-- **Cross-slice contracts** — auth/permissions, public API surface, event/message shapes — anything multiple slices have to agree on.
-- **Architectural decisions** — sync vs async, transactional boundaries, multi-tenancy, third-party integrations — the expensive-to-undo choices.
-- **Back-compat strategy** — *only when an existing schema or public contract changes:* the expand→contract / versioning plan for evolving it without breaking old data or in-flight consumers. Expensive-to-undo and spans slices (one slice expands, a later one contracts), so it belongs in the skeleton. Brand-new shapes need no strategy.
+- Read the relevant code and record the real names of components, routes, types, tables, or jobs involved.
+- Capture the current shape of any schema or public contract that may change.
 
-### What stays out
+This is a factual baseline, not a design prescription. Stop once the foundational conversation is grounded.
 
-- Component structure, file layout, naming.
-- Specific endpoint shapes (beyond auth and the contract).
-- UI layout, copy, visual design.
-- Internal implementation details.
-- "Nice to have" thinking that hasn't earned its place via the litmus test.
+### Decide and approve
 
-If you're not sure → it stays out. The skeleton should err small.
+Ask about applicable foundational choices one at a time: key entities and invariants, shared auth or public contracts, transaction or async boundaries, tenancy, and constraining integrations.
 
-### Process
+When an existing schema or public contract changes, include a compatibility and migration approach (for example additive change, versioning, or expand–contract), the compatibility window, and recovery/reversibility. Omit migration planning for wholly new shapes.
 
-#### A1. Setup
-
-- **Read `../feature-spec/references/tracking-conventions.md` before doing anything else** and follow it throughout this workflow.
-- Discover the repository's project instructions, existing planning/tracking conventions, and available tools. Use the existing system; do not introduce a new framework.
-- Resolve and follow the project tracking mapping from the shared reference. Confirm it covers stable artifact references, parent/child hierarchy, dependencies, acceptance criteria, lifecycle state, structured notes/descriptions, drafts and follow-ups, metadata paths, and code-revision evidence. Prefer native tracker features; where unavailable, use explicit links and checklists.
-- If there is no tracker, conventions conflict, or any mapping is ambiguous, ask the user before proceeding. Do not initialize, install, or invent a tracker or remote command syntax. Persist a newly resolved mapping in existing project documentation or, if that is not appropriate, on the parent artifact.
-- Get the parent artifact reference:
-  - If passed as an argument, use it.
-  - Otherwise use the mapped listing/search operation and ask which parent artifact to shape.
-- Retrieve the parent through the mapping and read its brief, lifecycle state, structured notes, and existing child links. If it has no brief, redirect to `/feature-spec`.
-- Phase detection: if a `## Design` section already exists in the mapped planning content, this is a Phase B re-entry — skip to Phase B. If both design and child slices exist, ask whether to revise.
-
-#### A2. Survey what exists
-
-Before surfacing decisions, do a short fact-finding pass on the code the design will touch. The goal is to ground the conversation on real current behavior so the design isn't reasoning against a hallucinated baseline.
-
-- Identify the real names of components, routes, types, tables, and procedures this feature will modify or extend. Read the relevant files — don't infer from path conventions.
-- For any contract about to be redesigned (existing API signature, schema, event shape), note its current shape verbatim.
-- Keep it short — a brain-dump of _what is_, not _what will be_.
-
-Treat the survey as fact-finding, **not** prescription. The skeleton is free to change any of it; the survey only ensures changes are made against the real baseline.
-
-#### A3. Surface foundational decisions
-
-Walk the brief and surface candidate decisions, applying the skeleton litmus test to each. Ask the user about them **one at a time**, never as a form. Likely areas to probe (not all will apply):
-
-- **Data**: new entities? Relationships? Invariants that must hold across slices?
-- **Contracts**: auth/permissions model? Public surface (API, events, types)?
-- **Architecture**: anything async? Transaction boundaries? Third-party integrations that constrain the shape?
-- **Migration & compatibility** (only if A2 showed this changes an *existing* schema or public contract): how does the existing shape evolve without breaking old data or old / in-flight consumers? The strategy spans slices — one slice expands, a later one contracts — so it's foundational, not per-slice. Skip entirely for brand-new tables/contracts.
-
-For close calls, **say the test out loud**:
-
-> "Does the choice of sync vs async here affect more than one slice? If only the first slice cares, we can defer it."
-
-This trains alignment on what foundational means, and gives the user a chance to push back.
-
-#### A4. Reflect back
-
-After surfacing 2–3 decisions, summarize the skeleton in plain language:
-
-> "So the foundation is: _new entities X and Y, X belongs to a workspace, Y is immutable. The auth model is Z. We're going synchronous for now._ That's it — everything else is per-slice. Sound right?"
-
-Iterate until the user confirms without changes. **Alignment ≠ completeness** — a small skeleton everyone agrees on is the goal.
-
-#### A5. Draft and save
-
-Once aligned, draft the design section. Use this shape, **omitting any subsection that didn't earn a decision**:
+Reflect the small set of decisions back after every few answers. Draft only the sections that earned a decision:
 
 ```markdown
 ## Design
-
-### Data model
-
-- [Entity X]: [shape, key fields, key invariants]
-- [Entity Y]: [shape, key fields, key invariants]
-- Relationships: [how they connect]
-
-### Contracts
-
-- Auth: [permissions model]
-- Public surface: [APIs / events / exported types other slices or consumers depend on]
-
+### Data and invariants
+- ...
+### Shared contracts
+- ...
 ### Architecture
-
-- [Decision]: [chosen option] — [one-line rationale]
-
-### Migration & compatibility
-
-*(Only when an existing schema or public contract changes — omit otherwise.)*
-
-- [existing shape that changes] → [strategy: additive / expand→contract / dual-write / versioned]
-- Compatibility window: [what old code / consumers must keep working during rollout]
-- Reversible: [yes | forward-only + why + recovery]
-
-### Out of scope for the skeleton
-
-- [Thing that came up but failed the litmus test — captured so it's not forgotten, deferred to /feature-implement]
+- [decision and brief reason]
+### Migration and compatibility
+- [old-to-new rollout, compatibility window, recovery]
+### Deferred to slices
+- ...
 ```
 
-Show the draft. Ask: _"Anything missing, wrong, or padded? Anything here that only one slice actually needs?"_ The second half of the question is the important one — it invites the user to challenge the skeleton's scope.
+Ask: **“Anything missing, wrong, or padded? Does anything here belong to only one slice?”** Revise until the user explicitly approves. Then update the parent's design without replacing its brief or stacking duplicate design sections, and read it back.
 
-Once the user approves, retrieve the parent artifact's current planning content through the mapping, append the new `## Design` section, and save it back to the mapped description or structured-note location. Preserve the brief and other existing content. If revising an existing design, replace the previous `## Design` section rather than stacking a new one. Record draft/follow-up or lifecycle metadata through the mapping when the project conventions call for it.
+Continue directly to slicing unless paused. If pausing, make this approved revision durable according to the shared tracking conventions.
 
-#### A6. Continue to slicing
+## Phase B: vertical slices
 
-Once the approved skeleton is saved:
+A slice is a real, end-to-end capability that can be merged and shipped independently once its genuine prerequisites are present. It must let a user or operator do something they could not do before and must not rely on a later slice to become useful.
 
-- Confirm it was saved (stable parent reference + mapped location or durable link) and summarize it in 1–2 lines.
-- Continue directly to Phase B in the same run; the `/feature-shape` invocation authorizes both phases.
-- Pause only if the user explicitly asks to stop or a foundational decision remains unresolved. On re-entry, the skill detects the saved skeleton and jumps straight to Phase B.
-- If pausing after saving the skeleton, land that planning change using the same rules as **B6. Land the plan** so a later worktree can see it.
+A schema-only, API-only, UI-only, or test-only step is not a slice. Combine layers until the result delivers observable value. One slice is valid when further splitting would create scaffolding or horizontal layers.
 
----
+### Propose and order
 
-## Phase B — Slicing
+Propose one to five small slices. For each state:
 
-### Litmus test (slicing)
+- a title phrased as the new capability;
+- what it delivers and explicitly defers;
+- the layers needed for that end-to-end path;
+- two to four observable, slice-scoped acceptance criteria.
 
-For every candidate slice, ask:
+Put the slice that tests the riskiest assumption first, not the easiest work. State what it teaches.
 
-> _"Could this slice be merged on its own and let a user do something they couldn't before?"_
+Infer dependencies from the actual design and code: add a prerequisite only when the slice truly uses something delivered by it. Do not make every slice sequential by default. A dependent slice must still be independently shippable when its stated prerequisites are met.
 
-- **Yes** → vertical slice, keep it.
-- **No** → horizontal layer in disguise (just schema, just API, just UI). Recombine with adjacent slices until it earns its own user-visible value.
+### Approve together
 
-The classic failure mode is slicing by layer:
+Present the ordered slices, acceptance criteria, risk rationale, and dependency graph in one review. Ask the user to correct scope, order, dependencies, or criteria. This is one approval gate: revise all of them together until explicitly approved.
 
-> ❌ Slice 1: DB migration. Slice 2: API endpoints. Slice 3: UI.
+Check every approved slice:
 
-That's not vertical — none alone delivers value. The right shape:
+- It delivers observable value across every layer it needs.
+- It can ship without any later slice.
+- Its criteria describe behavior, not implementation.
+- Its dependencies are real and point only to prerequisites.
 
-> ✅ Slice 1: User can create a draft (DB + API + minimal UI for one path).
-> ✅ Slice 2: User can publish a draft.
-> ✅ Slice 3: User can revise after publish.
+### Save and hand off
 
-Each slice touches every layer it needs, and each ships something a user could try.
+Save each approved slice as an ordered child using the project's tracking conventions. Include its stable parent link, delivered behavior, deferrals, acceptance criteria, and explicit prerequisite links (or none). Reuse matching children on reruns and preserve unrelated content. Verify the parent and dependency links by reading them back.
 
-### Process
+Follow `tracking-conventions.md` to make the approved parent design and combined slice/criteria/dependency plan a durable baseline before implementation or fan-out. Do not implement code, push, or open a PR.
 
-#### B1. Re-entry check
+Report the parent and child references, durable revision evidence, dependency graph, and which slices currently have no pending prerequisites. If durability failed, report the block rather than authorizing implementation.
 
-- Retrieve the parent through the project tracking mapping. Confirm `## Design` is present in its mapped planning content. If not, run Phase A first.
-- Inspect mapped hierarchy links for existing child slices. If any exist, ask whether to revise (recreate) or stop. Don't silently stack new ones on top.
-
-#### B2. Propose slices
-
-Walk the brief and skeleton and propose **1–5 candidate slices**. Aim small — a slice that's "the whole feature minus polish" is not a slice, it's the feature.
-
-A **single slice is a valid outcome** when the feature is naturally one thin end-to-end cut and splitting it further would only produce horizontal layers or scaffolding. Don't manufacture multiple slices to hit a quota — if the litmus test only justifies one, propose one and say so. The dependency graph and parallel-eligibility report simply become no-ops in that case.
-
-For each candidate, write down:
-
-- **Title** — what the user can newly do (e.g. "User can save a draft").
-- **What it delivers** — one sentence of user-visible behavior.
-- **What it does NOT do** — explicit deferrals so the scope is sharp.
-- **Layers touched** — confirm it hits every layer it needs (data, server, client, tests).
-
-Apply the slicing litmus test to each. If any slice fails, recombine.
-
-#### B3. Order by learning value
-
-**Slice 1 should validate the riskiest assumption** — the thing most likely to be wrong, the choice you most want feedback on. Don't lead with the easiest slice; lead with the one that teaches you the most.
-
-Examples of "riskiest assumption":
-
-- A novel UX pattern users haven't seen before → ship a stub of it first to test reactions.
-- A third-party integration that might not behave as expected → exercise it first.
-- A schema choice that's expensive to change → build the slice that exercises the trickiest invariant.
-
-Later slices add capability now that the foundation is validated.
-
-#### B4. Reflect back (slicing + dependencies + acceptance criteria)
-
-Present the proposed slicing in order. **Infer the dependency graph yourself** — for each slice, work out which prior slices it actually needs (extends an entity, reuses a new helper, builds on a new endpoint) and which it doesn't. Don't default to sequential; analyze the real code dependencies based on the design and what each slice delivers.
-
-For each slice, include 2–4 acceptance criteria. Each AC must be:
-
-- **Observable** — a tester (or you) can check it against the running system.
-- **Scoped to this slice** — not a criterion for the whole feature.
-- **Behavior, not implementation** — _"user sees X"_, not _"function returns Y"_.
-
-> "Proposed slicing:
->
-> 1. **Slice 1: [title]** — [what it delivers]. Validates [risky assumption].
->    - AC: [observable behavior]
->    - AC: [observable behavior]
-> 2. **Slice 2: [title]** — [what it delivers]. Depends on Slice 1 ([reason]).
->    - AC: [observable behavior]
->    - AC: [observable behavior]
->
-> Each slice is mergeable on its own. Anything off in the scope, order, dependencies, or acceptance criteria? Want to merge, split, reorder, or cut any?"
-
-Use this as a **single approval gate** for the slices, dependency graph, and ACs. Iterate as needed, then record the approved graph and criteria for B5. Common adjustments:
-
-- Combining two slices that together feel like one thin shippable unit.
-- Splitting a slice that's secretly two pieces of value.
-- Reordering to put a riskier slice first.
-- Cutting a slice that turns out to be premature.
-- Correcting a missed code dependency or acceptance criterion.
-
-#### B5. Save
-
-For each slice, in intended order, create a child planning artifact through the project tracking mapping. Record:
-
-- A stable reference and explicit parent link to the feature artifact.
-- Its title as `Slice <N>: <title>`.
-- The approved acceptance criteria in the mapped native field or checklist.
-- The user-visible behavior under `## What this slice delivers`.
-- Deferrals under `## Out of scope for this slice`.
-- Explicit dependency links to every prerequisite identified in B4; record none when the graph marks the slice independent.
-- Any required lifecycle, structured-note, draft/follow-up, metadata-path, or revision-evidence fields.
-
-Prefer native hierarchy, dependency, and acceptance-criteria features. If the tracker lacks one, use the explicit links/checklists prescribed by the mapping. Verify each child can be retrieved by its stable reference and that parent and dependency links resolve. Do not invent tool syntax.
-
-#### B6. Land the plan
-
-Make the approved parent design and child-slice graph a durable baseline accessible to implementation agents before implementation or fan-out begins.
-
-- For a git-local plan, follow the repository's branch and commit conventions. If they are unclear, ask before changing branches. Commit only planning artifacts changed by this shaping run; do not include unrelated working-tree changes. Reference the parent's stable reference in the commit subject, report the SHA + subject, and do not push or open a PR. If the user asked not to commit or the commit fails, stop after shaping: `/feature-implement` and worktree fan-out must wait until the plan is committed.
-- For a remote plan, durably save an approved revision or immutable snapshot accessible to all implementation agents and record its revision evidence through the mapping. A git commit is not required unless project conventions require one. Stop rather than fan out if agents cannot retrieve the approved revision.
-
-Report back with:
-
-- The created child artifact references in order, with their dependency graph.
-- The approved planning revision/snapshot evidence and durable location (plus commit SHA + subject for a git-local plan).
-- A summary of which slices can be implemented in parallel right now (those with no pending dependencies).
-- The natural next step: _"Run `/feature-implement <slice-ref>` to start on slice 1, or fan out parallel slices once their dependencies clear and every agent can access the approved plan."_
-
----
-
-## Anti-patterns
-
-**Phase A (skeleton):**
-
-- ❌ Designing things that only one slice needs ("the button should be blue"). Push to `/feature-implement`.
-- ❌ Producing an exhaustive design covering every screen and endpoint. The skeleton is one page.
-- ❌ Specifying field-level details unless they encode a cross-slice invariant.
-- ❌ Sketching UI layout or component structure. Per-slice.
-- ❌ Writing the design before the user has confirmed a reflection.
-- ❌ Replacing the brief instead of appending to it. The artifact is the _trail_ — brief → design → slices.
-- ❌ Padding the design with sections that didn't earn a decision. Empty sections are a smell.
-- ❌ Skipping the as-is survey and inventing names or shapes for existing code.
-- ❌ Letting the as-is survey become prescription. Surveying ≠ committing to preserve.
-- ❌ Changing an existing column or public contract in the skeleton without a compatibility strategy. Renames and drops break old code mid-rollout — decide expand→contract here, where the cross-slice plan lives.
-
-**The phase transition:**
-
-- ❌ Stopping after an approved skeleton when no decision is unresolved. Continue into slicing by default.
-- ❌ Requiring a second approval for acceptance criteria after the user just approved the slice structure. Review both together once.
-- ❌ Continuing when the user explicitly asked to pause or a foundational decision is unresolved.
-
-**Phase B (slicing):**
-
-- ❌ Horizontal slices ("Slice 1: schema. Slice 2: API. Slice 3: UI."). None of those alone delivers value.
-- ❌ Slices that depend on a later slice to be useful. Each must stand alone.
-- ❌ Ordering slices by ease rather than by learning value. Easy-first means risk-last.
-- ❌ One giant slice ("build it all"). That defeats the point.
-- ❌ Manufacturing extra slices to hit a quota. If only one slice survives the litmus test, ship one.
-- ❌ Acceptance criteria that describe the whole feature, not this slice.
-- ❌ Acceptance criteria that name implementation details ("uses Postgres", "calls foo()"). Test behavior, not internals.
-- ❌ Saving slices before the user has approved both the slicing and the ACs.
-- ❌ Silently stacking new slices on top of existing ones when the user re-runs the skill.
-- ❌ Defaulting to "all sequential" without analyzing what each slice actually needs from prior slices.
-- ❌ Starting implementation or fan-out before the approved design and slice graph are durable and accessible: selectively committed for git-local plans, or saved as an approved remote revision/snapshot.
+When the plan is durably saved, finish with: **“Run `/feature-implement <slice-ref>` for a ready slice.”**
