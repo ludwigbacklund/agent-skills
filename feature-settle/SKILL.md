@@ -51,7 +51,7 @@ Stop on a blocking behavior or security issue and ask whether to create a fix sl
 - Reconfirm QA freshness and slice reachability before triage.
 - Read only useful systemic friction from slice records; empty or routine history is not a finding.
 - Obtain an independent, **report-only** review of the cumulative feature diff using code-review when available, otherwise fresh-context review or a focused direct review. Do not auto-fix. Focus on cross-slice correctness, duplication, inconsistent conventions or naming, and seam-level test gaps.
-- Combine and deduplicate slice friction, assembled-diff findings, minor security findings, and QA issues. Preserve provenance and call out repeated patterns. If nothing remains, record that and proceed to close.
+- Combine and deduplicate slice friction, assembled-diff findings, minor security findings, and QA issues. Preserve provenance and call out repeated patterns. For reusable lessons, propose a targeted update to the place that owns the decision: generic workflow guidance in a skill, project conventions in project docs, or domain-specific decisions in the feature record. Check whether existing guidance was missing, unclear, or simply not followed before adding instructions. Avoid duplicating rules or preserving a debugging diary; route proposed updates through human triage. If nothing remains, record that and proceed to close.
 
 ## 4. Human triage
 

@@ -30,7 +30,8 @@ Implement one slice end to end. The approved parent design supplies invariants, 
 ## 2. Survey and plan
 
 - Read the closest relevant implementation and test analogue. Note file layout, naming, errors, authorization, and test patterns; do not invent a new convention silently.
-- For UI work, seek a bounded interaction-design consultation when available. Give it the user goal, approved design, slice constraints, proposed flow, and product references. Ask whether the interaction model is right, not merely how to style it. Behavior or scope changes still require user approval and, when needed, reshaping.
+- For UI work, challenge the interaction before choosing controls: could the user accomplish the same job with fewer concepts, actions, and visible facts? Start from the user's goal rather than exposing data-model operations. Match input precision to the decision being made; consider how users undo or change a decision without adding a mode for every mutation.
+- Seek a bounded interaction-design consultation when available; otherwise perform this critique directly. Give it the user goal, approved design, slice constraints, proposed flow, and product references. Ask what can be removed or deferred, not merely how to label or style it. Behavior or scope changes still require user approval and, when needed, reshaping.
 Present a brief tactical plan:
 
 - files to create or change;
@@ -57,7 +58,7 @@ Proceed immediately when the plan follows established patterns. Pause only for a
 - Verify every acceptance criterion with retained evidence; intent is not evidence.
 - Run the repository's relevant tests, type checks, lint/format checks, and any build or generated-code checks required by project instructions.
 - For migrations, test the ordered up/down or documented forward-only path on non-empty safe data, verify backfill and the compatibility window, and report unavailable safe environments as blockers.
-- For UI, verify the happy path and AC-linked edge states in a browser after refinement. Source review or screenshots alone are insufficient. Ask before destructive, irreversible, production, real-user-data, or external-side-effect actions. Missing access leaves affected criteria incomplete.
+- For UI, verify the happy path and AC-linked edge states in a browser after refinement. Check whether the current state, next action, and consequences are understandable without implementation knowledge—not merely whether controls work. Exercise invalid input before submission: feedback must arrive when useful, and invalid values must not produce a valid-looking consequence preview. Check realistic container widths and content, not only viewport breakpoints. Source review or screenshots alone are insufficient. Ask before destructive, irreversible, production, real-user-data, or external-side-effect actions. Missing access leaves affected criteria incomplete.
 - Obtain an independent, report-only correctness and quality review of this slice's diff using the code-review capability when available, otherwise fresh-context review or a focused direct review. Fix unambiguous in-scope findings, rerun affected checks, and re-review material fixes against the original findings; escalate material choices. Security of the assembled feature is reviewed in `/feature-settle`.
 - Inspect the final diff for scope and unrelated files. Any failed, blocked, or stale required check prevents completion.
 
