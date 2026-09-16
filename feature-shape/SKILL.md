@@ -1,6 +1,6 @@
 ---
 name: feature-shape
-description: Shape a spec'd feature into a thin skeleton design plus vertical, independently shippable slices. Phase A produces the skeleton, then Phase B slices it in the same run unless the user asks to pause. Use after feature-spec and before feature-implement. Triggers include "shape this feature", "design and slice this task ID", or an explicit /feature-shape invocation.
+description: Shape a spec'd feature into a thin skeleton design plus vertical, independently shippable slices. Phase A produces the skeleton, then Phase B slices it in the same run unless the user asks to pause. Use after feature-spec and before feature-implement. Triggers include "shape this feature", "design and slice this planning artifact", or an explicit /feature-shape invocation.
 ---
 
 # /feature-shape — Skeleton + Slicing (two-phase)
@@ -9,10 +9,10 @@ Take a feature that's already been spec'd and shape it into (a) a thin cross-sli
 
 ## When to use
 
-- User invokes `/feature-shape <task-id>` (or just `/feature-shape` — then ask which task).
-- The task should already have a brief from `/feature-spec`. If it doesn't, redirect to `/feature-spec` first.
+- User invokes `/feature-shape <parent-ref>` (or just `/feature-shape` — then ask which parent artifact).
+- The parent artifact should already have a brief from `/feature-spec`. If it doesn't, redirect to `/feature-spec` first.
 - Comes after `/feature-spec`, before `/feature-implement`.
-- The skill auto-detects which phase to run based on the parent task's state:
+- The skill auto-detects which phase to run based on the parent artifact's state:
   - No `## Design` section → run **Phase A (skeleton)**, then continue to **Phase B**.
   - Has `## Design` but no child slices → jump straight to **Phase B (slicing)**.
   - Both exist → ask whether to revise the skeleton, re-slice, or stop.
@@ -53,12 +53,15 @@ If you're not sure → it stays out. The skeleton should err small.
 
 #### A1. Setup
 
-- Verify `backlog` CLI is available: `which backlog`. If missing, stop and tell the user.
-- Get the task ID:
-  - If passed as arg, use it.
-  - Otherwise run `backlog task list --plain` and ask which task to shape.
-- Read the brief: `backlog task view <id> --plain`. If the task has no brief, redirect to `/feature-spec`.
-- Phase detection: if a `## Design` section already exists, this is a Phase B re-entry — skip to Phase B. If both design and child slices exist, ask whether to revise.
+- **Read `../feature-spec/references/tracking-conventions.md` before doing anything else** and follow it throughout this workflow.
+- Discover the repository's project instructions, existing planning/tracking conventions, and available tools. Use the existing system; do not introduce a new framework.
+- Resolve and follow the project tracking mapping from the shared reference. Confirm it covers stable artifact references, parent/child hierarchy, dependencies, acceptance criteria, lifecycle state, structured notes/descriptions, drafts and follow-ups, metadata paths, and code-revision evidence. Prefer native tracker features; where unavailable, use explicit links and checklists.
+- If there is no tracker, conventions conflict, or any mapping is ambiguous, ask the user before proceeding. Do not initialize, install, or invent a tracker or remote command syntax. Persist a newly resolved mapping in existing project documentation or, if that is not appropriate, on the parent artifact.
+- Get the parent artifact reference:
+  - If passed as an argument, use it.
+  - Otherwise use the mapped listing/search operation and ask which parent artifact to shape.
+- Retrieve the parent through the mapping and read its brief, lifecycle state, structured notes, and existing child links. If it has no brief, redirect to `/feature-spec`.
+- Phase detection: if a `## Design` section already exists in the mapped planning content, this is a Phase B re-entry — skip to Phase B. If both design and child slices exist, ask whether to revise.
 
 #### A2. Survey what exists
 
@@ -130,22 +133,13 @@ Once aligned, draft the design section. Use this shape, **omitting any subsectio
 
 Show the draft. Ask: _"Anything missing, wrong, or padded? Anything here that only one slice actually needs?"_ The second half of the question is the important one — it invites the user to challenge the skeleton's scope.
 
-Once the user approves, append to the parent task's description:
-
-1. Read current description: `backlog task view <id> --plain`.
-2. Combine: existing description + blank line + new `## Design` section.
-3. Write back: `backlog task edit <id> --plain -d "$(cat <<'EOF'
-<combined markdown>
-EOF
-)"`.
-
-If revising an existing design, replace the previous `## Design` section rather than stacking a new one.
+Once the user approves, retrieve the parent artifact's current planning content through the mapping, append the new `## Design` section, and save it back to the mapped description or structured-note location. Preserve the brief and other existing content. If revising an existing design, replace the previous `## Design` section rather than stacking a new one. Record draft/follow-up or lifecycle metadata through the mapping when the project conventions call for it.
 
 #### A6. Continue to slicing
 
 Once the approved skeleton is saved:
 
-- Confirm it was saved (task ID + path) and summarize it in 1–2 lines.
+- Confirm it was saved (stable parent reference + mapped location or durable link) and summarize it in 1–2 lines.
 - Continue directly to Phase B in the same run; the `/feature-shape` invocation authorizes both phases.
 - Pause only if the user explicitly asks to stop or a foundational decision remains unresolved. On re-entry, the skill detects the saved skeleton and jumps straight to Phase B.
 - If pausing after saving the skeleton, land that planning change using the same rules as **B6. Land the plan** so a later worktree can see it.
@@ -179,8 +173,8 @@ Each slice touches every layer it needs, and each ships something a user could t
 
 #### B1. Re-entry check
 
-- Read the parent: `backlog task view <id> --plain`. Confirm `## Design` is present. If not, run Phase A first.
-- If child slices already exist, ask whether to revise (recreate) or stop. Don't silently stack new ones on top.
+- Retrieve the parent through the project tracking mapping. Confirm `## Design` is present in its mapped planning content. If not, run Phase A first.
+- Inspect mapped hierarchy links for existing child slices. If any exist, ask whether to revise (recreate) or stop. Don't silently stack new ones on top.
 
 #### B2. Propose slices
 
@@ -240,48 +234,31 @@ Use this as a **single approval gate** for the slices, dependency graph, and ACs
 
 #### B5. Save
 
-For each slice (in order), create a child task. Slices that depend on prior slices reference them with `--depends-on` — the prior slice must already exist, which is why we create in order.
+For each slice, in intended order, create a child planning artifact through the project tracking mapping. Record:
 
-```bash
-backlog task create "Slice <N>: <title>" \
-  -p <parent-id> \
-  --depends-on <prior-slice-id-or-comma-list> \
-  --plain \
-  --ac "AC 1" \
-  --ac "AC 2" \
-  --ac "AC 3" \
-  -d "$(cat <<'EOF'
-Part of <parent-id>.
+- A stable reference and explicit parent link to the feature artifact.
+- Its title as `Slice <N>: <title>`.
+- The approved acceptance criteria in the mapped native field or checklist.
+- The user-visible behavior under `## What this slice delivers`.
+- Deferrals under `## Out of scope for this slice`.
+- Explicit dependency links to every prerequisite identified in B4; record none when the graph marks the slice independent.
+- Any required lifecycle, structured-note, draft/follow-up, metadata-path, or revision-evidence fields.
 
-## What this slice delivers
-[One paragraph — user-visible behavior]
-
-## Out of scope for this slice
-- [Deferred to later slices]
-EOF
-)"
-```
-
-Omit `--depends-on` for slice 1 (no prior) and for any slice the inferred graph marks as independent of all priors. Use the dependency graph captured in B4.
-
-Create slices in the intended order so child IDs reflect that order, and so `--depends-on` references resolve.
+Prefer native hierarchy, dependency, and acceptance-criteria features. If the tracker lacks one, use the explicit links/checklists prescribed by the mapping. Verify each child can be retrieved by its stable reference and that parent and dependency links resolve. Do not invent tool syntax.
 
 #### B6. Land the plan
 
-Commit the approved parent design and child-slice task files before implementation begins. This makes the plan a durable baseline that isolated worktrees can inherit.
+Make the approved parent design and child-slice graph a durable baseline accessible to implementation agents before implementation or fan-out begins.
 
-- Follow the repository's branch and commit conventions. If they are unclear, ask before changing branches.
-- Commit only backlog artifacts changed by this shaping run; do not include unrelated working-tree changes.
-- Reference the parent task ID in the commit subject. Report the SHA + subject.
-- Do not push or open a PR.
-- If the user asked not to commit or the commit fails, stop after shaping. The plan remains saved locally, but `/feature-implement` must not begin until it is committed.
+- For a git-local plan, follow the repository's branch and commit conventions. If they are unclear, ask before changing branches. Commit only planning artifacts changed by this shaping run; do not include unrelated working-tree changes. Reference the parent's stable reference in the commit subject, report the SHA + subject, and do not push or open a PR. If the user asked not to commit or the commit fails, stop after shaping: `/feature-implement` and worktree fan-out must wait until the plan is committed.
+- For a remote plan, durably save an approved revision or immutable snapshot accessible to all implementation agents and record its revision evidence through the mapping. A git commit is not required unless project conventions require one. Stop rather than fan out if agents cannot retrieve the approved revision.
 
 Report back with:
 
-- The list of created task IDs (in order), with their dependency graph.
-- The planning commit SHA + subject.
+- The created child artifact references in order, with their dependency graph.
+- The approved planning revision/snapshot evidence and durable location (plus commit SHA + subject for a git-local plan).
 - A summary of which slices can be implemented in parallel right now (those with no pending dependencies).
-- The natural next step: _"Run `/feature-implement <slice-id>` to start on slice 1, or fan out parallel slices in worktrees once their dependencies clear."_
+- The natural next step: _"Run `/feature-implement <slice-ref>` to start on slice 1, or fan out parallel slices once their dependencies clear and every agent can access the approved plan."_
 
 ---
 
@@ -318,4 +295,4 @@ Report back with:
 - ❌ Saving slices before the user has approved both the slicing and the ACs.
 - ❌ Silently stacking new slices on top of existing ones when the user re-runs the skill.
 - ❌ Defaulting to "all sequential" without analyzing what each slice actually needs from prior slices.
-- ❌ Starting implementation or worktree fan-out before the approved design and slice graph are committed.
+- ❌ Starting implementation or fan-out before the approved design and slice graph are durable and accessible: selectively committed for git-local plans, or saved as an approved remote revision/snapshot.

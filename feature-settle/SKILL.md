@@ -16,9 +16,9 @@ QA and reflection are different modes — exercising a running feature vs. readi
 - User invokes `/feature-settle <parent-id>` (or just `/feature-settle` — then ask which feature).
 - Run it **after all child slices of a feature are `Done`/landed**, not after each slice. Per-slice verification already happened inside `/feature-implement`; this is the feature-level pass.
 - The skill auto-detects which phase to run based on the parent task's state:
-  - No `## QA` section → run **Phase A (QA)**, then continue to Phase B unless QA found a blocking issue.
-  - Has `## QA` with pass or minor issues, its tested code revision is still current, and the parent isn't closed → jump straight to **Phase B (triage + close)**.
-  - Has `## QA` with a blocking issue → rerun **Phase A** after fixes land; never bypass the blocker based on the section's presence.
+  - No mapped QA record → run **Phase A (QA)**, then continue to Phase B unless QA found a blocking issue.
+  - Has a mapped QA record with pass or minor issues, its tested code revision is still current, and the parent isn't closed → jump straight to **Phase B (triage + close)**.
+  - Has a mapped QA record with a blocking issue → rerun **Phase A** after fixes land; never bypass the blocker based on the record's presence.
   - Parent already `Done` → ask whether to re-QA, re-triage, or stop.
 
 ## What this skill does NOT do
@@ -64,13 +64,12 @@ The whole point is to catch what *only* shows up once the slices are assembled �
 
 #### A1. Setup
 
-- Verify `backlog` CLI is available: `which backlog`. If missing, stop and tell the user.
-- Get the parent feature ID:
-  - If passed as arg, use it.
-  - Otherwise run `backlog task list --plain` and ask which feature to settle.
-- Load context: `backlog task view <parent-id> --plain` for the brief + `## Design`, then `backlog task list -p <parent-id> --plain` for the child slices and `backlog task view <slice-id> --plain` for each slice's ACs and notes.
-- **Confirm all slices have landed before phase detection.** For every in-scope slice, require status `Done`, find the unique commit whose subject contains its exact slice ID, and verify it is reachable from current `HEAD` with `git merge-base --is-ancestor <sha> HEAD`. If a slice was reopened, or a commit is missing, ambiguous, or unreachable, stop and identify it — task status alone is not proof that the assembled checkout contains the slice.
-- Phase detection: read `Tested implementation HEAD` from `## QA`. A verdict is fresh only when no non-backlog file differs between that revision and the current checkout: `git diff --quiet <tested-head>..HEAD -- . ':(exclude)backlog/**'`, and there are no uncommitted non-backlog changes. Backlog-only planning or QA commits do not stale behavioral evidence. If evidence is fresh and records pass or minor issues, skip to Phase B. If code changed, rerun Phase A and replace the old verdict. If it records a blocking issue, rerun Phase A only after the relevant fixes land; if still unresolved, stop. If the parent is already `Done`, ask whether to re-QA, re-triage, or stop.
+- **Mandatory:** read `../feature-spec/references/tracking-conventions.md` before any tracker operation.
+- Discover and follow the repository's project instructions, available tracking tools, and tracking conventions. Establish the project-specific mapping for stable feature/slice references, parent-child hierarchy, dependencies, acceptance criteria, lifecycle states, notes, drafts, QA revision metadata, and metadata paths. Persist that mapping in the durable location prescribed by the shared conventions so later agents can use it. Use native tracker fields where available; otherwise use explicit links and checklists. Do not assume a particular tracker, CLI, directory, or status spelling.
+- Get the stable parent feature reference from the argument; otherwise semantically list candidate features and ask which one to settle.
+- Semantically load the parent brief and approved design plus all child slices, their ACs, dependencies, notes, lifecycle states, and implementation mappings. Require an approved planning baseline that is either a reachable Git commit or a durable remote snapshot/version readable by agents; if neither exists, stop.
+- **Confirm all slices have landed before phase detection.** For every in-scope slice, require a lifecycle state equivalent to `Done`, resolve its implementation revision from an explicit tracker commit/PR mapping, native development link, or other unambiguous evidence, and verify that revision is reachable from current `HEAD` with `git merge-base --is-ancestor <revision> HEAD`. A commit subject containing the stable slice reference is one fallback discovery method, not exclusive proof. Disambiguate conflicting candidates from tracker history/links or ask. If a slice was reopened or its implementation revision is missing, ambiguous, or unreachable, stop and identify it—status alone never proves that the assembled checkout contains the slice.
+- Phase detection: read the mapped tested implementation revision from the QA record. A verdict is fresh only when no code or other behavior-affecting file differs between that revision and the current checkout, including uncommitted changes. Exclude **only** the exact metadata paths established by the persisted tracker mapping; never blanket-exclude an assumed tracker directory, and never exclude code. Build the `git diff` pathspec from those mapped paths and inspect uncommitted changes under the same rule. Pure bookkeeping or QA-record changes do not stale behavioral evidence, but scope, criteria, or design changes invalidate affected QA even when code is unchanged. Compare current planning content with the approved baseline, including remote changes, and inspect untracked files as well as tracked differences before reusing evidence. If evidence is fresh and records pass or minor issues, skip to Phase B. If behavior-affecting files changed, rerun Phase A and replace the old verdict. If it records a blocking issue, rerun Phase A only after relevant fixes land; if still unresolved, stop. If the parent is already in the mapped `Done` state, ask whether to re-QA, re-triage, or stop.
 
 #### A2. Derive a QA plan
 
@@ -97,14 +96,13 @@ Show the plan to the user, then immediately run safe local checks. Do not wait f
 
 #### A4. Record the verdict
 
-Write a `## QA` section to the parent task capturing the result — this is how the QA outcome survives into Phase B and beyond, the same way the brief and design are the trail:
+Semantically write the following QA record to the parent's mapped QA/notes field so the outcome survives into Phase B and beyond:
 
-```bash
-backlog task edit <parent-id> --plain --notes "$(cat <<'EOF'
+```markdown
 ## QA
 
 Verdict: [pass / issues found]
-Tested implementation HEAD: [git rev-parse HEAD for the implementation revision being tested]
+Tested implementation revision: [verified Git revision for the implementation being tested]
 Environment: [local/test environment and relevant fixture or dataset]
 
 ### Checked
@@ -112,13 +110,11 @@ Environment: [local/test environment and relevant fixture or dataset]
 
 ### Issues (omit if none)
 - [What's wrong] — [which seam / slice] — [blocking / minor]
-EOF
-)"
 ```
 
-If the task already has notes, append `## QA` rather than overwriting them. When rerunning Phase A after a blocking or stale verdict, replace the previous `## QA` section instead of stacking another.
+Preserve existing notes. When rerunning Phase A after a blocking or stale verdict, replace the prior QA record rather than stacking another. For a remote tracker, read the latest parent immediately before updating, preserve unrelated edits, and make retries idempotent. A sync failure must be reported and blocks any claim that QA was durably recorded.
 
-Do not commit the QA record during Phase A. Leave the backlog metadata pending so it can be included in Phase B's final settlement commit. If a blocking issue stops the flow before Phase B, leave the QA record uncommitted and report that clearly to the user. The recorded implementation HEAD intentionally precedes the eventual settlement commit. On re-entry, backlog-only changes or commits are allowed by the freshness check above.
+For Git-local metadata, do not commit the QA record during Phase A; leave it pending for Phase B's atomic settlement commit. If a blocking issue stops the flow before Phase B, report that the record is uncommitted. Remote QA metadata may be saved immediately. The tested implementation revision intentionally precedes any eventual metadata-only settlement commit; only the exact mapped metadata paths may be ignored by the freshness check.
 
 A **blocking** issue means the feature is not done—surface it and stop; it likely needs a fix
 slice via `feature-implement` or a scope conversation, not a close-out. Minor issues can be
@@ -146,9 +142,9 @@ This phase exists because implementation often happens in parallel agents (foreg
 
 #### B1. Re-entry check
 
-- Read the parent: `backlog task view <parent-id> --plain`. Confirm a `## QA` section is present, contains no unresolved blocking issue, and is fresh under A1's tested-HEAD check. If absent or stale, run Phase A first; if blocking, return to Phase A after fixes rather than entering triage + close.
-- Reconfirm every child slice is `Done` and its unique slice-ID commit remains reachable from current `HEAD`, using A1's landed check. This catches slices reopened after QA.
-- Establish scope: all child slices of the parent (`backlog task list -p <parent-id> --plain`), reading the **`## Friction`** subsection of each slice's `notes`.
+- Semantically reread the parent. Confirm its mapped QA record is present, contains no unresolved blocking issue, and is fresh under A1's revision check. If absent or stale, run Phase A first; if blocking, return to Phase A after fixes rather than entering triage + close.
+- Reconfirm every child slice is in mapped `Done`, resolve its implementation revision using A1's evidence hierarchy, and verify it remains reachable from current `HEAD`. This catches slices reopened after QA; lifecycle state alone is insufficient.
+- Establish scope through the mapped parent-child relationship and read each slice's **`## Friction`** subsection from its mapped notes field.
 
 #### B2. Inspect the code that shipped
 
@@ -157,7 +153,7 @@ no individual agent could see because each had only one slice's context. Per-sli
 already swept each slice's own diff in `feature-implement`; this pass is for what only emerges
 once the slices sit together.
 
-- Identify the commits for each in-scope slice — `/feature-implement` commits per slice, so `git log --oneline` over the range (or `git log --grep "<slice-id>"`) maps slices to commits. Ask the user for the range if it's unclear.
+- Resolve implementation revisions for each in-scope slice from explicit tracker commit/PR mappings or native development links first. Use `git log` ranges and stable-reference commit-subject searches only as fallback evidence. Disambiguate conflicts and ask the user for the range if it remains unclear.
 - **Review the cumulative diff**—the whole feature commit range (`git diff <base>..<head>`),
   whether it landed on a feature branch or directly on the default branch, not one slice. Use
   the `code-review` skill when available. Otherwise, prefer suitable fresh-context review
@@ -205,7 +201,7 @@ Recommend the **most pragmatic option**, but wait for the user's choices:
 - **Larger / cross-cutting / needs design → draft.** Refactors that touch many files, new abstractions, anything where the *proposal* needs discussion before someone picks it up.
 - **Not worth it → drop.** Acknowledged, not preserved.
 
-If the user says "fix now": make the change directly and run the targeted tests plus format/lint/type checks appropriate to what changed. Report it in one line. Then **commit the triage fix** as a focused code commit on the convention-appropriate branch that references the parent; exclude pending backlog metadata and never push or open a PR. After the commit, rerun every integration or browser check from Phase A that the change could affect. If it touches auth, trust boundaries, input handling, secrets, or another security-sensitive path, rerun the focused security review too. A failed or blocked recheck prevents closure. Replace the QA record's `Tested implementation HEAD` with the fix commit and update its checked evidence; the final settlement commit in B6 lands that metadata. If the user says not to commit the fix, leave the feature open because QA cannot be bound to landed code.
+If the user says "fix now": make the change directly and run the targeted tests plus format/lint/type checks appropriate to what changed. Report it in one line. Then **commit and verify the triage fix** as a focused code commit on the convention-appropriate branch that references the parent; exclude pending Git-local tracker metadata and never push or open a PR. After the commit, rerun every integration or browser check from Phase A that the change could affect. If it touches auth, trust boundaries, input handling, secrets, or another security-sensitive path, rerun the focused security review too. A failed or blocked recheck prevents closure. Replace the QA record's tested implementation revision with the verified fix commit and update its checked evidence. For remote metadata, reread before updating and retry idempotently; a sync failure blocks closure and must be reported, never described as success. For Git-local metadata, B6 lands the update atomically. If the user says not to commit the fix, leave the feature open because QA cannot be bound to landed code.
 
 If the user says "draft", treat that as approval of the proposed change, rationale, and rough cost shown for that item, incorporating any edits they supplied. Save it in B5 without a separate drafting interview or confirmation. If material framing is missing or the user's edits are ambiguous, collect questions for **all affected drafts in one follow-up**; do not interview one item at a time. Preserve the approved framing rather than silently expanding scope.
 
@@ -213,12 +209,9 @@ If the user says "drop" → skip that item. Don't argue.
 
 #### B5. Save drafts
 
-For each item the user chose to draft, create one:
+For each approved item, semantically create one draft in the mapped draft store, distinct from committed work, with a stable reference and the project's learning label/category when available:
 
-```bash
-backlog draft create "<short title>" \
-  --labels learning \
-  -d "$(cat <<'EOF'
+```markdown
 ## Friction
 [What made this awkward — refined from slice notes, code inspection, QA, and the conversation]
 
@@ -232,24 +225,20 @@ backlog draft create "<short title>" \
 [small / medium / large]
 
 ## Surfaced in
-- <slice-id> / <file-path> / QA
-EOF
-)"
+- <stable-slice-ref> / <file-path> / QA
 ```
 
-Drafts live in `backlog/drafts/`, separate from active tasks — explicitly *not yet committed work*. Promote later with `backlog draft promote <id>`.
+Use the tracker's native draft capability when available; otherwise use the explicit mapped draft lifecycle/state and links. Record how an approved draft is promoted through the project's semantic promotion operation. For remote trackers, read-first and retry idempotently; report sync failures and do not claim the draft was saved.
 
 #### B6. Close the feature
 
-Once QA passed (or its minor issues were triaged and accepted), its evidence is fresh, and friction is triaged, close the parent:
+Once QA passed (or its minor issues were triaged and accepted), its evidence is fresh, friction is triaged, and every slice's verified implementation revision is reachable, close using the applicable storage sequence below. Respect any project-required publication/merge gate; if it is not satisfied, retain the mapped intermediate state and report the blocker rather than publishing without authorization.
 
-```bash
-backlog task edit <parent-id> -s "Done" --plain
-```
+- **Git-local tracker metadata:** immediately before committing, transition the parent to the mapped `Done` state, then commit the parent status, final QA metadata, and drafts from this settle run as one atomic settlement commit referencing the stable parent reference. Include only mapped metadata artifacts from this run, confirm the commit succeeded, and report its revision + subject. If it fails, restore the parent to its prior open state.
+- **Remote tracker metadata:** all code and any triage fixes must already be committed and verified. Read the latest parent and related drafts, preserve unrelated edits, write final QA revision evidence and draft links, then transition the parent to `Done` as the last semantic operation. Make retries idempotent. If any update fails, report the synchronization failure, do not claim success, and leave or restore the parent to the closest open state when possible.
+- Do not push or open a PR unless explicitly requested.
 
-Commit the parent status, final QA metadata, and any drafts created during triage as one settlement commit that references the parent ID. Include only backlog artifacts from this settle run, confirm the commit succeeded, and report its SHA + subject. Do not push or open a PR. If the commit fails, restore the parent to its prior open status—the feature is not durably closed.
-
-Do **not** close if Phase A left a blocking issue unresolved, QA became stale, a post-fix recheck failed, or any slice commit is not reachable. State the blocker and leave the parent open.
+Do **not** close if Phase A left a blocking issue unresolved, QA became stale, a post-fix recheck failed, tracker synchronization is incomplete, or any slice implementation revision is not reachable. State the blocker and leave the parent open.
 
 #### B7. Hand off
 
@@ -257,11 +246,11 @@ Report, in this order:
 
 - **QA:** the verdict (pass, or which issues remain and their disposition).
 - **Fixed now:** one line per change, with file paths.
-- **Drafted:** IDs + titles.
+- **Drafted:** stable references + titles.
 - **Dropped:** items the user acknowledged but didn't act on.
 - **Feature:** closed (`Done`) or held open (with why).
 
-End with: *"Run `backlog draft list --plain` to see all open learning drafts. Promote with `backlog draft promote <id>` when one is approved for work."*
+End with the project-specific semantic instructions for listing open learning drafts and promoting an approved draft, using the persisted tracker mapping rather than assuming a command.
 
 ---
 
@@ -297,4 +286,4 @@ End with: *"Run `backlog draft list --plain` to see all open learning drafts. Pr
 - ❌ Closing the parent while a blocking QA issue is unresolved. The feature isn't done.
 - ❌ Trusting a stored QA verdict without checking that its tested implementation revision still matches the code.
 - ❌ Closing after a triage code fix without rerunning the affected behavioral and security checks.
-- ❌ Treating `Done` task statuses as proof that slice commits are integrated into the current checkout.
+- ❌ Treating `Done` lifecycle states as proof that slice implementation revisions are integrated into the current checkout.
