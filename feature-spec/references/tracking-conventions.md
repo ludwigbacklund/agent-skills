@@ -14,12 +14,14 @@ Treat implementation evidence as a revision set keyed by repository. A single-re
 
 Read before editing, preserve unrelated content, and confirm saves. Reuse existing work on reruns. After a failed create, check whether it succeeded before retrying; don't duplicate issues or overwrite concurrent changes.
 
+Prefer one canonical, evolving record over commentary about that record. Update the existing issue body, backlog document, or repository file in place as the feature progresses. Use comments only for actual discussion, questions, blockers, or requested notifications—not routine snapshots, progress logs, status changes, or evidence that belongs in the canonical record.
+
 ## Save approved plans
 
 Before implementation, preserve the approved brief, design, slice criteria, and dependency graph so later agents can retrieve the same plan:
 
 - **Repository files:** selectively commit changed planning files and give implementation worktrees that commit.
-- **Remote records:** save an approved history/version reference, or a durable snapshot using the project's document convention. A mutable issue link alone doesn't preserve approval; ask where to save a snapshot if necessary.
+- **Hosted records:** update the canonical body, mark the approved plan revision and date when the format permits, and rely on the tracker's native history. If it has no usable revision history, follow the project's durable document convention or ask where approval should be preserved. Do not add a comment solely to snapshot the body.
 - **Both:** save each part appropriately and link them, without creating competing sources of truth.
 
 Report the saved reference. If saving/committing fails or the user declines the required commit, report the blocker rather than starting implementation. Material plan changes need renewed approval. Give delegates the parent, slice, and approved-plan references.
