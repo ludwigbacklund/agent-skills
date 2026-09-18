@@ -10,6 +10,8 @@ Reuse the project's conventions. Record only missing decisions that later agents
 
 Keep a durable trail: parent brief and approved design → ordered slices with scope, criteria, dependencies, and status → implementation evidence → final QA and follow-ups. Use native fields when available; otherwise stable links, sections, and checklists suffice. A slice can be a document section, not necessarily a separate issue. Use project status names; “Done” here means successfully completed, not cancelled.
 
+Treat implementation evidence as a revision set keyed by repository. A single-repository task may use one revision as shorthand. When a slice spans repositories, keep it vertical: use one clean checkout or worktree per repository, record every required revision, and do not turn repository layers into feature slices. In Orca, group those worktrees under one folder context when practical.
+
 Read before editing, preserve unrelated content, and confirm saves. Reuse existing work on reruns. After a failed create, check whether it succeeded before retrying; don't duplicate issues or overwrite concurrent changes.
 
 ## Save approved plans
@@ -30,10 +32,10 @@ Follow project branch/commit conventions; ask when unclear. Commit verified work
 - **Remote tasks:** commit verified code first, then save evidence and the implementation revision, and mark complete last. Read back to confirm. On failure, report “code committed; tracker update pending,” keep completion blocked, and retry only missing updates after checking current state. Leave or restore the task to an open state when possible; don't undo a concurrent user's changes.
 - Respect project merge/publication requirements: retain an intermediate state if those gates aren't met. A local commit doesn't override them.
 
-Record which implementation commit belongs to each slice, through tracker links or a commit subject containing its stable reference. Local completion metadata can be identified by the commit containing it; don't try to embed a commit's own SHA in itself. Before building on a dependency or settling the feature, confirm its completed state **and** that its implementation is present in this checkout (`git merge-base --is-ancestor <revision> HEAD`). After squash/rebase/cherry-pick, verify the integrated equivalent; ask if ambiguous. Status or a metadata-only commit is not implementation evidence.
+Record each implementation commit that belongs to a slice, keyed by repository when there is more than one, through tracker links or commit subjects containing its stable reference. Local completion metadata can be identified by the commit containing it; don't try to embed a commit's own SHA in itself. Before building on a dependency or settling the feature, confirm its completed state **and** verify every recorded revision in the corresponding checkout (`git merge-base --is-ancestor <revision> HEAD`). After squash/rebase/cherry-pick, verify the integrated equivalent; ask if ambiguous. Status or a metadata-only commit is not implementation evidence.
 
 Apply the same save/read-back rules to QA and follow-ups. Close the parent only after required evidence and approved follow-ups are saved. Commit local settlement metadata selectively; for remote records, close last. Failed saves never count as successful completion.
 
 ## Reuse QA only when still valid
 
-Save the tested code revision and the plan it was checked against. Reuse a verdict only if behavior and requirements are unchanged: inspect committed, staged, unstaged, and untracked changes, plus scope/design/criteria changes in the tracker. Pure tracking bookkeeping may be ignored, but never exclude a whole tracker directory without checking that it contains no behavior-affecting files. If evidence is missing, ambiguous, or stale, verify again.
+Save the tested code revision set and the plan it was checked against. Reuse a verdict only if behavior and requirements are unchanged: inspect committed, staged, unstaged, and untracked changes in every affected checkout, plus scope/design/criteria changes in the tracker. Pure tracking bookkeeping may be ignored, but never exclude a whole tracker directory without checking that it contains no behavior-affecting files. If evidence is missing, ambiguous, or stale, verify again.

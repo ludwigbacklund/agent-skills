@@ -62,7 +62,7 @@ Continue directly to slicing unless paused. If pausing, make this approved revis
 
 A slice is a real, end-to-end capability that can be merged and shipped independently once its genuine prerequisites are present. It must let a user or operator do something they could not do before and must not rely on a later slice to become useful.
 
-A schema-only, API-only, UI-only, or test-only step is not a slice. Combine layers until the result delivers observable value. One slice is valid when further splitting would create scaffolding or horizontal layers.
+A schema-only, API-only, UI-only, repository-only, or test-only step is not a slice. Combine layers across repositories when needed until the result delivers observable value. One slice is valid when further splitting would create scaffolding or horizontal layers.
 
 ### Propose and order
 

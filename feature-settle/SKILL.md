@@ -13,7 +13,7 @@ Run once after every feature slice has landed. Test the assembled behavior again
 - Resolve the stable parent reference, or list likely features and ask.
 - Read the approved brief/design, all in-scope slices, dependencies, implementation mappings, decisions, deferrals, friction, and existing QA record.
 - Require a durable approved planning baseline.
-- For every slice, require the mapped completed state and verify its implementation revision is an ancestor of current `HEAD`. Status alone is not evidence. Stop on missing, ambiguous, reopened, or unreachable work.
+- For every slice, require the mapped completed state and verify every implementation revision in its corresponding repository checkout. A single repository is the one-entry case. Status alone is not evidence. Stop on missing, ambiguous, reopened, or unreachable work.
 - Apply the shared QA-freshness rules; bookkeeping changes alone don't require repeating QA.
 - Reuse a non-blocking QA verdict only when its tested revision and planning baseline remain truthful; otherwise rerun QA. If the parent is already complete, ask whether to re-QA, re-triage, or stop.
 
@@ -24,12 +24,12 @@ Create a short QA plan from the brief:
 - the end-to-end flow across slices;
 - hand-offs and assumptions at slice seams;
 - important error, empty, boundary, concurrency, or ordering cases not covered by one slice;
-- the ordered migration stack, when applicable.
+- the affected repository revision set and ordered migration stack, when applicable.
 
 Show the plan, then run safe local checks without waiting. Ask first only for ambiguous scope or destructive, irreversible, production, real-user-data, or external-side-effect actions.
 
 - Exercise integrated behavior rather than repeating every slice acceptance criterion.
-- Run the repository's full relevant tests, type checks, lint/format checks, and required build checks.
+- Run each affected repository's full relevant tests, type checks, lint/format checks, and required build checks.
 - Verify UI flows and adversarial states in a browser with safe realistic data. Missing access or capability blocks the verdict; do not infer success.
 - For migrations, apply the complete sequence to non-empty safe data, confirm the final schema and compatibility, and identify dangling expand→contract work.
 - Run one focused security review of the assembled feature diff using the security-review capability when available, otherwise directly inspect authorization, injection, secrets, SSRF, trust boundaries, and similar attack paths. Exploitable findings are blocking.
@@ -37,7 +37,7 @@ Show the plan, then run safe local checks without waiting. Ask first only for am
 Record one durable QA verdict on the parent containing:
 
 - pass or issues-found verdict;
-- tested implementation revision and approved-plan reference;
+- tested implementation revision set and approved-plan reference;
 - environment and representative data;
 - integration checks and security outcome;
 - issues classified as blocking or minor.
@@ -48,7 +48,7 @@ Stop on a blocking behavior or security issue and ask whether to create a fix sl
 
 ## 3. Review and aggregate
 
-- Reconfirm QA freshness and slice reachability before triage.
+- Reconfirm QA freshness and every repository revision's reachability before triage.
 - Read only useful systemic friction from slice records; empty or routine history is not a finding.
 - Obtain an independent, **report-only** review of the cumulative feature diff using code-review when available, otherwise fresh-context review or a focused direct review. Do not auto-fix. Focus on cross-slice correctness, duplication, inconsistent conventions or naming, and seam-level test gaps.
 - Combine and deduplicate slice friction, assembled-diff findings, minor security findings, and QA issues. Preserve provenance and call out repeated patterns. For reusable lessons, propose a targeted update to the place that owns the decision: generic workflow guidance in a skill, project conventions in project docs, or domain-specific decisions in the feature record. Check whether existing guidance was missing, unclear, or simply not followed before adding instructions. Avoid duplicating rules or preserving a debugging diary; route proposed updates through human triage. If nothing remains, record that and proceed to close.
@@ -79,7 +79,7 @@ Close only when:
 
 - QA is fresh and non-blocking;
 - approved fixes are landed and reverified;
-- every slice revision remains reachable;
+- every slice revision remains reachable in its corresponding repository;
 - every candidate has a human-approved disposition;
 - required tracker writes succeeded.
 
