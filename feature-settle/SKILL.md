@@ -31,6 +31,7 @@ Show the plan, then run safe local checks without waiting. Ask first only for am
 - Exercise integrated behavior rather than repeating every slice acceptance criterion.
 - Run each affected repository's full relevant tests, type checks, lint/format checks, and required build checks.
 - Verify UI flows and adversarial states in a browser with safe realistic data. Missing access or capability blocks the verdict; do not infer success.
+- Check the complete user job against the brief and approved user journey when present, not only slice behavior. Look for repeated entry or decisions, hidden prerequisites, inconsistent terminology or feedback, and unclear consequences or recovery. Assess total effort and uncertainty: users should not have to coordinate our slices. Record experience findings in QA and route them through the existing blocking-issue or human-triage path; do not silently redesign approved behavior.
 - For migrations, apply the complete sequence to non-empty safe data, confirm the final schema and compatibility, and identify dangling expand→contract work.
 - Run one focused security review of the assembled feature diff using the security-review capability when available, otherwise directly inspect authorization, injection, secrets, SSRF, trust boundaries, and similar attack paths. Exploitable findings are blocking.
 

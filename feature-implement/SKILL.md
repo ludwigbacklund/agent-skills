@@ -31,8 +31,10 @@ Implement one slice end to end. The approved parent design supplies invariants, 
 ## 2. Survey and plan
 
 - Read the closest relevant implementation and test analogue. Note file layout, naming, errors, authorization, and test patterns; do not invent a new convention silently.
-- For UI work, challenge the interaction before choosing controls: could the user accomplish the same job with fewer concepts, actions, and visible facts? Start from the user's goal rather than exposing data-model operations. Match input precision to the decision being made; consider how users undo or change a decision without adding a mode for every mutation.
+- For UI work, challenge the interaction before choosing controls, using the approved user journey when present. Minimize total user effort and uncertainty, not code, clicks, or controls alone. Start from the user's goal rather than exposing data-model operations; remove unnecessary concepts, actions, and demands on memory without hiding useful information.
+- For each user-facing choice, explain why the user must make it now; otherwise use a safe default or defer it while preserving meaningful control, discoverability, accessibility, and reversibility. Match input precision to the decision. Present information when it helps the user decide, understand consequences, or recover, using their language rather than internal machinery. Consider how users undo or change a decision without adding a mode for every mutation.
 - Seek a bounded interaction-design consultation when available; otherwise perform this critique directly. Give it the user goal, approved design, slice constraints, proposed flow, and product references. Ask what can be removed or deferred, not merely how to label or style it. Behavior or scope changes still require user approval and, when needed, reshaping.
+
 Present a brief tactical plan:
 
 - affected repositories, when there is more than one;

@@ -17,11 +17,11 @@ Normally complete both phases in one run. Pause only when the user asks or a fou
 
 ## Phase A: thin cross-slice skeleton
 
-A skeleton contains only decisions that multiple slices must share. For each candidate ask:
+A skeleton contains a compact user journey when applicable and only the other decisions that multiple slices must share. For each candidate beyond that journey ask:
 
 > If any one slice were removed, would the remaining slices still need this decision?
 
-If no, defer it to that slice's implementation. Keep UI details, file layout, component names, endpoint internals, and one-slice choices out.
+If no, defer it to that slice's implementation. Keep detailed layouts, controls, copy, file layout, component names, endpoint internals, and other one-slice choices out. Shared interaction decisions are foundations, not UI details.
 
 ### Ground in the current system
 
@@ -31,6 +31,12 @@ Do a short, targeted code survey before proposing changes:
 - Capture the current shape of any schema or public contract that may change.
 
 This is a factual baseline, not a design prescription. Stop once the foundational conversation is grounded.
+
+### Shape the user journey
+
+For user-facing work, sketch the shortest coherent path from the user's starting situation to the brief's desired outcome before choosing slices. Challenge whether a simpler approach could achieve the same outcome; minimize total user effort and uncertainty, not code, clicks, or controls alone.
+
+Identify the necessary user choices and why they must be made at that point, safe defaults or deferrals, information needed to act confidently, and how users recover or change their minds. Preserve meaningful control and accessibility; do not hide consequential information merely to simplify the screen. Keep the sketch brief, even for a single slice, and include it in the existing design approval rather than adding a gate.
 
 ### Decide and approve
 
@@ -42,6 +48,9 @@ Reflect the small set of decisions back after every few answers. Draft only the 
 
 ```markdown
 ## Design
+### User journey
+- [Starting situation → shortest coherent task flow → desired outcome]
+- [Necessary choices, defaults, timely information, and recovery]
 ### Data and invariants
 - ...
 ### Shared contracts
