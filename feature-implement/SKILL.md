@@ -55,6 +55,7 @@ Proceed immediately when the plan follows established patterns. Pause only for a
 - Record out-of-scope discoveries as deferrals rather than expanding the slice.
 - For UI, treat the first working version as a draft. Use the running interface with realistic safe data. Before completion, obtain independent critique of the rendered happy path and critical failure/recovery states—not just the proposed flow or source. The initial interaction consultation does not satisfy this review.
 - Give the reviewer the user's goal, approved journey, project design principles, and running interface, not only implementation acceptance criteria. Assess visual hierarchy, density and grouping, scanning/comparison, timely consequences, and the next useful action at realistic container widths and content lengths. Exercise recovery: can users finish the job without unnecessary navigation, repeated entry, or reconstructing their work? Check keyboard use and relevant loading/empty/error states. Absence of overflow is not evidence of good responsive design.
+- During this existing rendered-review loop, build the slice's **experience packet** using `references/experience-packet.md`. Capture selective storyboard panels as states are exercised; do not add a separate demo run, recording, or presentation-building phase. Give the reviewer the packet requirements before browser review. Replace affected panels after fixes and rechecks so the packet presents the final reviewed experience.
 - Make in-scope improvements directly; seek approval for changed behavior or conventions. Use at most three critique/refinement passes, stopping early when no meaningful issue remains. If material experience findings remain at the limit, stop and report the blocker rather than marking the slice complete. This rendered review supplies the experience verdict in step 4; it is not an extra user-approval stage.
 
 ## 4. Verify
@@ -73,7 +74,7 @@ Proceed immediately when the plan follows established patterns. Pause only for a
 Update the mapped slice record with:
 
 - **What was built:** a short result and verification evidence.
-- **UI experience review, when applicable:** reviewer identity, tested implementation revision or exact working-tree state, rendered states and widths reviewed, recovery paths exercised, material findings and their verified resolutions, and the final experience verdict with any remaining limitations. Retain representative visual evidence alongside the behavioral observations. Unresolved material findings or a missing, blocked, or stale verdict prevent Done status.
+- **UI experience review, when applicable:** reviewer identity, tested implementation revision or exact working-tree state, rendered states and widths reviewed, recovery paths exercised, material findings and their verified resolutions, and the final experience verdict with any remaining limitations. Present this evidence in an untracked experience packet under the working repository's `.feature-reviews/` folder and link it from the slice's **Experience review** section, alongside the verdict and required completion metadata. Keep the generated page and assets ignored; never check them into Git. Follow `references/experience-packet.md` for the compact format, local ignore setup, accessibility, worktree lifecycle, and freshness checks; do not duplicate the review report. The packet is required for UI slices during implementation, not deferred to settlement. Unresolved material findings or a missing, blocked, or stale verdict prevent Done status.
 - **Decisions:** only non-obvious choices future work needs.
 - **Deferrals:** concrete out-of-scope work that should survive.
 - **Friction:** only systemic obstacles useful to a later implementer.
@@ -87,8 +88,11 @@ Commit each affected repository and update completion using the shared tracking 
 Report:
 
 - what was built;
+- **Review the experience → [packet link]** for UI slices, with the experience verdict and any limitations or specific decisions needing the user's judgment;
 - checks and browser evidence, where applicable;
 - the implementation revision set and tracker synchronization result, or that work remains uncommitted;
 - blockers, deferrals, and useful friction.
+
+The packet is the human-readable output of existing verification, not an additional user-approval gate. Do not wait for general feedback before landing; pause only for blockers or material decisions under the existing rules. If blocked, still link any available packet, clearly marked incomplete.
 
 Suggest another slice or `/feature-settle` only when this slice is truthfully complete, its revision is integrated into the checkout that will host subsequent work, and all required evidence is durable.

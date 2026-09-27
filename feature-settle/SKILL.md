@@ -32,6 +32,7 @@ Show the plan, then run safe local checks without waiting. Ask first only for am
 - Run each affected repository's full relevant tests, type checks, lint/format checks, and required build checks.
 - Verify UI flows and adversarial states in a browser with safe realistic data. Missing access or capability blocks the verdict; do not infer success.
 - Check the complete user job against the brief and approved user journey when present, not only slice behavior. Look for repeated entry or decisions, hidden prerequisites, inconsistent terminology or feedback, and unclear consequences or recovery. Assess total effort and uncertainty: users should not have to coordinate our slices. Record experience findings in QA and route them through the existing blocking-issue or human-triage path; do not silently redesign approved behavior.
+- For UI, use the slice experience packets as inputs, not as proof of integrated behavior. During the existing assembled browser checks, link a compact integrated-journey storyboard from the parent QA record, following `../feature-implement/references/experience-packet.md` for format, storage, and freshness. Store the page and assets in the working repository's ignored `.feature-reviews/` folder; never check packet files or review images into Git. Settlement is not a cleanup step for committed review artifacts. Focus on cross-slice transitions, consistency, repeated effort, and recovery; link still-valid slice panels and capture only where the integrated journey adds or changes evidence. Do not rebuild every slice packet or add a separate demo run or approval gate. Missing slice captures must be reported and captured during required checks, not treated as verified evidence.
 - For migrations, apply the complete sequence to non-empty safe data, confirm the final schema and compatibility, and identify dangling expand→contract work.
 - Run one focused security review of the assembled feature diff using the security-review capability when available, otherwise directly inspect authorization, injection, secrets, SSRF, trust boundaries, and similar attack paths. Exploitable findings are blocking.
 
@@ -41,6 +42,7 @@ Record one durable QA verdict on the parent containing:
 - tested implementation revision set and approved-plan reference;
 - environment and representative data;
 - integration checks and security outcome;
+- for UI, the integrated-journey storyboard and experience findings, with links to relevant slice packets;
 - issues classified as blocking or minor.
 
 Replace stale prior evidence rather than stacking it. For Git-local tracking, leave the QA update for the final atomic settlement commit. Read back remote writes. A recording failure or any required blocked check prevents closure.
@@ -68,7 +70,7 @@ Ask once for numbered decisions. Omitted or ambiguous items are not approved; co
 
 Act only on approved dispositions:
 
-- **Fix now:** make the bounded change, run targeted tests plus relevant types/lint/build checks, commit it separately under repository conventions, and verify the commit. Rerun every integrated browser/behavior check it could affect and rerun security review for security-sensitive paths. Update the QA tested revision and evidence. Failed or blocked rechecks, an uncommitted fix, or failed metadata synchronization prevents closure.
+- **Fix now:** make the bounded change, run targeted tests plus relevant types/lint/build checks, commit it separately under repository conventions, and verify the commit. Rerun every integrated browser/behavior check it could affect and rerun security review for security-sensitive paths. Update the QA tested revision and evidence, including affected storyboard panels and any slice packet invalidated by the fix. Failed or blocked rechecks, an uncommitted fix, or failed metadata synchronization prevents closure.
 - **Follow-up:** create one durable draft/deferred item in the mapped store with the approved problem, proposal, rationale, cost, provenance, and promotion path. Read back the write.
 - **Drop:** record no work item and do not argue.
 
@@ -88,7 +90,7 @@ Follow the shared completion policy for Git-local versus remote metadata, atomic
 
 Report in order:
 
-- **QA:** verdict, tested revision, and any accepted minor issues;
+- **QA:** verdict, tested revision, and any accepted minor issues; for UI, a prominent **Review the integrated experience → [storyboard link]**;
 - **Fixed now:** changes and revisions;
 - **Follow-ups:** stable references and titles;
 - **Dropped:** numbered items;
