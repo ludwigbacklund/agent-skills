@@ -5,13 +5,13 @@ For UI work, present the existing rendered-review evidence as one compact, scrol
 ## Capture during review
 
 - Capture the actual running implementation with safe realistic data, not mockups or a separate demo. Use the existing browser review and rechecks; no extra demonstration run or recording is required.
-- Organize panels by the user's task: starting point, meaningful decisions, feedback, recovery, and outcome. Select useful states, not every click; omit inapplicable states without manufacturing work.
+- Organize panels around the approved primary scenario and walkthrough: starting point, meaningful decisions, feedback, recovery, and outcome. Select useful states, not every click; omit inapplicable states without manufacturing work.
 - Include important failure/recovery states and materially different layouts or content conditions in a compact secondary section. Label simulated failures and distinguish observed behavior from untested expectations. Screenshots cannot prove timing, keyboard behavior, persistence, or recovery; accompany them with observations from exercised checks.
 - Use a simple Markdown page or the tracker's native equivalent with inline images and captions. No bespoke site or presentation framework. Keep detailed logs and test output linked rather than reproduced.
 
 ## Keep it brief
 
-- Lead with the verdict and anything the user needs to decide. Make the packet scannable, not a narrative report.
+- Lead with a scoped verdict: **slice interaction** for implementation, **whole job** for settlement. Name the scenario or portion exercised and any unverified remainder; do not use an unqualified experience PASS. Keep behavior/test results distinct. Identify expert review versus actual-user testing without implying unperformed testing. Surface any decision needed; make the packet scannable, not a narrative report.
 - Let screenshots carry the presentation. Give each panel a short title and one sentence explaining the action and result. Add a behavioral note only when the screenshot cannot show an important verified fact.
 - No introduction, implementation recap, repeated verdicts, or descriptions of obvious visual details. Include only material fixes, limitations, and specific questions; omit empty sections.
 - Put provenance and detailed check links at the bottom. Keep required review coverage; shorten the prose, not the verification.
@@ -39,7 +39,9 @@ Use this structure, omitting inapplicable sections and repeating the panel block
 ```markdown
 # Experience review — <slice title>
 
-**Verdict:** <pass / issues found / blocked — brief limitation, if any>
+**Slice interaction:** <pass / issues found / blocked; at settlement use Whole job: verified / issues found / blocked>
+**Scope:** <original scenario or slice portion exercised; unverified remainder, if any>
+**Evidence type:** <expert review and/or actual-user testing, only as performed>
 **Decision needed:** <specific question, only if needed>
 
 ## Main journey

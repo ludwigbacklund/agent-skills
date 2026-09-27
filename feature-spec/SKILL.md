@@ -17,9 +17,10 @@ Ask one question at a time, or one tightly related pair. Let each answer shape t
 
 Learn only what is useful for alignment:
 
-- Who experiences the problem, and in what situation?
+- Who experiences the problem, and what triggers the primary situation?
 - What happens today, including the workaround and its cost?
-- What observable outcome would show the problem is solved?
+- What must the person have accomplished when they stop, and how will they know?
+- Which situations are routine and which are exceptions? Confirm frequency or priority where it affects scope; do not invent it.
 - What must not change?
 - What tempting work is outside this feature?
 
@@ -27,7 +28,7 @@ Probe vague words such as “better” or “faster” until they become observa
 
 > The problem is X for Y; today they do Z. We will know it worked when O, within constraint C. Is that right?
 
-Continue until the user confirms the complete reflection. Do not use a fixed questionnaire or infer approval from silence.
+Continue until the user confirms the complete reflection. For user-facing work, include one concrete primary scenario: trigger → desired outcome and evidence of completion, without designing the steps yet. Distinguish confirmed facts from assumptions; ask rather than inventing a representative scenario. Do not use a fixed questionnaire or infer approval from silence.
 
 ## Draft and approve
 
@@ -37,11 +38,14 @@ Draft a short brief using only sections supported by the conversation:
 ## Problem
 [What is wrong or missing, for whom, and the important current cost]
 
+## Primary scenario
+[Confirmed actor and trigger → completed job; routine case versus relevant exceptions]
+
 ## Why now
 [Why it matters now, if discussed]
 
 ## Success criteria
-- [Observable outcome]
+- [Observable outcome; for user-facing work, include successful completion of the primary job, not only access to capabilities]
 
 ## Constraints
 - [Constraint]

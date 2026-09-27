@@ -34,9 +34,11 @@ This is a factual baseline, not a design prescription. Stop once the foundationa
 
 ### Shape the user journey
 
-For user-facing work, sketch the shortest coherent path from the user's starting situation to the brief's desired outcome before choosing slices. Challenge whether a simpler approach could achieve the same outcome; minimize total user effort and uncertainty, not code, clicks, or controls alone.
+For user-facing work, carry the brief's confirmed primary scenario into a short walkthrough before choosing slices. If it is missing, clarify it with the user rather than inventing the job. Use concrete, clearly illustrative example data to show what the user sees, decides, and does from the trigger through completion, including how they know they are finished. A text walkthrough or rough sketch is enough; no polished prototype is required.
 
-Identify the necessary user choices and why they must be made at that point, safe defaults or deferrals, information needed to act confidently, and how users recover or change their minds. Preserve meaningful control and accessibility; do not hide consequential information merely to simplify the screen. Keep the sketch brief, even for a single slice, and include it in the existing design approval rather than adding a gate.
+Compare the proposed approach with a materially simpler alternative and explain the choice. Minimize total effort and uncertainty, not code, clicks, or controls alone. Separate rules the system must enforce from concepts the user must understand; data-model distinctions do not automatically require controls or vocabulary.
+
+Identify necessary choices and why they must be made at that point, safe defaults or deferrals, timely consequences, and recovery. Preserve meaningful control and accessibility; do not hide consequential information merely to simplify the screen. Include the walkthrough and comparison in the existing design approval, not a new gate. A user-facing design without this walkthrough is incomplete; later slice and assembled reviews use it as their common scenario.
 
 ### Decide and approve
 
@@ -49,8 +51,9 @@ Reflect the small set of decisions back after every few answers. Draft only the 
 ```markdown
 ## Design
 ### User journey
-- [Starting situation → shortest coherent task flow → desired outcome]
-- [Necessary choices, defaults, timely information, and recovery]
+- [Primary scenario walkthrough with example data: what the user sees, decides, does, and recognizes as completion]
+- [Simpler alternative considered and reason for the choice]
+- [Necessary user concepts versus system-only rules; defaults, timely information, and recovery]
 ### Data and invariants
 - ...
 ### Shared contracts
@@ -82,7 +85,7 @@ Propose one to five small slices. For each state:
 - the layers needed for that end-to-end path;
 - two to four observable, slice-scoped acceptance criteria.
 
-Put the slice that tests the riskiest assumption first, not the easiest work. State what it teaches.
+Identify technical risk and, for user-facing work, user-understanding risk using the approved walkthrough. Put the slice that tests the riskiest assumption first, not automatically the hardest engineering work, and state what it teaches. Address interaction uncertainty in the existing shaping or implementation review rather than postponing it solely because its code is easy.
 
 Infer dependencies from the actual design and code: add a prerequisite only when the slice truly uses something delivered by it. Do not make every slice sequential by default. A dependent slice must still be independently shippable when its stated prerequisites are met.
 
@@ -94,8 +97,8 @@ Check every approved slice:
 
 - It delivers observable value across every layer it needs.
 - It can ship without any later slice.
-- Its criteria describe behavior, not implementation.
-- Its dependencies are real and point only to prerequisites.
+- Its criteria describe behavior, not implementation, and connect to the brief's observable outcomes; for user-facing work, map them to its part of the approved walkthrough.
+- Its dependencies are real and point only to prerequisites. State what part of the whole job remains for later slices without making this slice depend on them for its own value.
 
 ### Save and hand off
 
