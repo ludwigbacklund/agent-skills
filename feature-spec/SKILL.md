@@ -15,12 +15,12 @@ Use the supplied feature name as a working title, or ask: **“What's the featur
 
 Ask one question at a time, or one tightly related pair. Let each answer shape the next question. This interview defines the problem, not its solution: do not design screens, APIs, schemas, or implementation unless needed to state a real constraint.
 
-Learn only what is useful for alignment:
+Use what the user has already supplied; do not repeat an interview for known answers. Learn only what could materially change the brief:
 
 - Who experiences the problem, and what triggers the primary situation?
 - What happens today, including the workaround and its cost?
 - What must the person have accomplished when they stop, and how will they know?
-- Which situations are routine and which are exceptions? Confirm frequency or priority where it affects scope; do not invent it.
+- What is the ordinary situation? Which exceptions materially affect the job or safety? Confirm priority where it changes scope; record uncertain exceptions as assumptions rather than designing a state for each hypothetical case.
 - What must not change?
 - What tempting work is outside this feature?
 
@@ -28,7 +28,7 @@ Probe vague words such as “better” or “faster” until they become observa
 
 > The problem is X for Y; today they do Z. We will know it worked when O, within constraint C. Is that right?
 
-Continue until the user confirms the complete reflection. For user-facing work, include one concrete primary scenario: trigger → desired outcome and evidence of completion, without designing the steps yet. Distinguish confirmed facts from assumptions; ask rather than inventing a representative scenario. Do not use a fixed questionnaire or infer approval from silence.
+Continue until the user confirms the complete reflection. For user-facing work, include one concrete primary scenario: trigger → desired outcome and recognizable completion, without designing the steps yet. Separate the person's job from guarantees the system must enforce; a constraint does not automatically become a user-facing concept. Distinguish confirmed facts from assumptions; ask rather than inventing a representative scenario. Do not use a fixed questionnaire or infer approval from silence.
 
 ## Draft and approve
 

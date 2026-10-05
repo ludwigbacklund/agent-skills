@@ -1,62 +1,44 @@
-# Experience packet
+# Optional experience packet
 
-For UI work, present the existing rendered-review evidence as one compact, scrollable storyboard. It lets the user review the resulting experience without discovering and clicking through every state. It does not replace browser verification or independent experience judgment.
+Use selective screenshots or a compact Markdown storyboard when they help the user inspect a journey, compare an important choice, or understand a finding. A runnable interface with concise observations may be enough. Unless the user or project requires a packet, its absence is not a completion blocker. A packet does not replace browser verification or establish usability.
 
-## Capture during review
+## Show the job
 
-- Capture the actual running implementation with safe realistic data, not mockups or a separate demo. Use the existing browser review and rechecks; no extra demonstration run or recording is required.
-- Organize panels around the approved primary scenario and walkthrough: starting point, meaningful decisions, feedback, recovery, and outcome. Select useful states, not every click; omit inapplicable states without manufacturing work.
-- Include important failure/recovery states and materially different layouts or content conditions in a compact secondary section. Label simulated failures and distinguish observed behavior from untested expectations. Screenshots cannot prove timing, keyboard behavior, persistence, or recovery; accompany them with observations from exercised checks.
-- Use a simple Markdown page or the tracker's native equivalent with inline images and captions. No bespoke site or presentation framework. Keep detailed logs and test output linked rather than reproduced.
+- Lead with the job and what the person can inspect or try, not an expert PASS, test counts, or implementation recap.
+- Capture useful states from the running interface with safe representative data during existing checks. No separate demo run or presentation framework is needed.
+- Give each panel a short action → observed result caption. Include failure/recovery or narrow layouts only where they explain meaningful behavior or a finding; label induced failures.
+- Separate verified behavior, observed experience findings, and unresolved uncertainty. Screenshots cannot prove persistence, timing, keyboard behavior, or recovery. Say whether observations came from expert inspection or actual-user testing.
+- Put detailed check links and the tested revision at the bottom. Reuse the canonical record's verification metadata rather than reproducing reports or collecting additional hashes solely for presentation.
 
-## Keep it brief
+## Store and maintain only what is useful
 
-- Lead with a scoped verdict: **slice interaction** for implementation, **whole job** for settlement. Name the scenario or portion exercised and any unverified remainder; do not use an unqualified experience PASS. Keep behavior/test results distinct. Identify expert review versus actual-user testing without implying unperformed testing. Surface any decision needed; make the packet scannable, not a narrative report.
-- Let screenshots carry the presentation. Give each panel a short title and one sentence explaining the action and result. Add a behavioral note only when the screenshot cannot show an important verified fact.
-- No introduction, implementation recap, repeated verdicts, or descriptions of obvious visual details. Include only material fixes, limitations, and specific questions; omit empty sections.
-- Put provenance and detailed check links at the bottom. Keep required review coverage; shorten the prose, not the verification.
+- Follow project artifact conventions; otherwise keep packets and captures under the working repository's ignored `.feature-reviews/<slice-or-parent-key>/`. Never commit generated packets or review images, or upload them without authorization.
+- Before capture, reuse an effective ignore rule or append the artifact directory to the local exclude file resolved by `git rev-parse --git-path info/exclude`. Verify with `git check-ignore`; check `git ls-files` for already tracked artifacts and report conflicts rather than silently untracking them.
+- Reuse one current packet per slice or parent when needed. Replace superseded panels, preserve unrelated files, and verify image references. Do not build a gallery of discarded drafts.
+- Link from the canonical record and handoff using an absolute local path labeled local-only. If shared access is needed, ask for an approved destination; do not imply local files are hosted.
+- Keep observations tied to the tested revision under the shared QA-freshness rules. After relevant changes, recheck behavior and refresh affected panels; a new screenshot alone does not verify behavior. Clearly label partial or stale evidence.
+- Ignored artifacts do not travel with commits. Before worktree cleanup, preserve still-needed evidence in a retained repository's ignored folder and update links. Do not retain obsolete packets merely as ceremony.
 
-## Store in the working repository, untracked; link from the slice
+## Optional compact structure
 
-- Store the entire packet (page and assets) in `<working-repo>/.feature-reviews/<slice-key>/`, with `index.md` and a neighboring assets directory. Never commit packet files or images. The existing slice record stores only the link, verdict, and required completion metadata; do not duplicate the packet there.
-- Before writing captures, ensure `/.feature-reviews/` is ignored. Reuse an effective existing ignore rule; otherwise append it to the local exclude file resolved with `git rev-parse --git-path info/exclude`, preserving existing entries. Do not change tracked `.gitignore` files solely for this. Verify with `git check-ignore` and check `git ls-files -- .feature-reviews` for already tracked files; if any exist, report the conflict rather than silently untracking or overwriting them. Never force-add packet files.
-- Use stable slice keys and reuse the same destination on reruns. For settlement, use a distinct parent-feature key. For a slice spanning repositories, keep one packet in the working repository that owns its tracking record, or the primary implementation repository if tracking is hosted; record that location in the handoff.
-- Keep one canonical, evolving packet per slice. Replace superseded panels rather than accumulating version folders; do not delete unrelated artifacts. Ignored files do not travel with commits and may disappear when a worktree is removed or cleaned. Before such cleanup, preserve any still-needed packet in the retained working repository's ignored `.feature-reviews/` folder and update its links; do not claim automatic persistence.
-- Local packets are local-only: provide their absolute path in the handoff and label local links accordingly. Do not imply that a hosted issue's readers can access a local file. If shared or remote access is required and no approved artifact host exists, ask for a destination; do not silently upload, introduce hosting, or fall back to committing assets. Hosted issue attachments are acceptable when authorized and accessible to the intended reviewers.
-- Verify the saved page and its image references in the intended review surface. Temporary browser output and chat attachments alone are not durable storage. Before committing, inspect the diff and staged paths to ensure no packet images or generated packet files entered Git. Apply the shared save/read-back and completion rules to the link and metadata; report storage/access failures rather than claiming delivery.
-
-## Keep it current
-
-- Record the tested implementation revision set (or exact working-tree state), approved-plan reference, reviewer identity, environment, representative data, and reviewed widths. After committing, update the untracked packet with the actual tested implementation commit. In repository-local completion metadata, the containing commit can identify the revision; do not embed a commit's own SHA in itself.
-- After changes, re-exercise affected behavior and replace its panels and observations. Reuse unchanged evidence only under the shared QA-freshness rules; do not relabel old captures as newly tested. A new screenshot alone does not refresh the experience verdict.
-- Show the current reviewed experience, not a gallery of discarded drafts. Briefly note material findings and verified resolutions. Mark partial or blocked packets explicitly and identify missing coverage.
-- Producing the packet adds no general user-approval gate. Surface specific unresolved decisions under the workflow's existing escalation rules.
-
-## Compact template
-
-Use this structure, omitting inapplicable sections and repeating the panel block only where useful:
+Omit sections that add no useful information:
 
 ```markdown
-# Experience review — <slice title>
+# <Job being reviewed>
 
-**Slice interaction:** <pass / issues found / blocked; at settlement use Whole job: verified / issues found / blocked>
-**Scope:** <original scenario or slice portion exercised; unverified remainder, if any>
-**Evidence type:** <expert review and/or actual-user testing, only as performed>
-**Decision needed:** <specific question, only if needed>
+Try it: <local URL or reproduction steps; relevant setup>
+Scope: <portion exercised and any important remainder>
 
-## Main journey
+## Journey
+### <Meaningful action or decision>
+![<Descriptive state>](assets/<capture>.png)
+<Action → observed result.>
 
-### <Meaningful state>
-![<Descriptive state label>](<durable image reference>)
-<One sentence: user action → observed result.>
-<Optional short note for important verified behavior not visible in the image.>
+## Findings and uncertainty
+<Specific findings, resolutions, limits, or a decision needed.>
 
-## Other important states
-<Selected error/recovery, empty/loading, or layout panels using the same format.>
-
-## Notes
-<Only material fixes, remaining concerns, or untested behavior; short bullets.>
-
-## Evidence
-<Tested revision/state; plan; reviewer; environment, safe data, widths; check links.>
+## Verification
+<Behavior checked; expert inspection or actual-user testing; tested revision and detailed check links.>
 ```
+
+Use the same format for settlement only when an integrated storyboard helps. Existing slice evidence is an input, not proof of the assembled job. Producing a packet adds no approval stage or usability certification.

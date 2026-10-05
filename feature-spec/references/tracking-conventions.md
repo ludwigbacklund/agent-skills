@@ -16,6 +16,8 @@ Read before editing, preserve unrelated content, and confirm saves. Reuse existi
 
 Prefer one canonical, evolving record over commentary about that record. Update the existing issue body, backlog document, or repository file in place as the feature progresses. Use comments only for actual discussion, questions, blockers, or requested notifications—not routine snapshots, progress logs, status changes, or evidence that belongs in the canonical record.
 
+Carry approved product lessons forward: reconcile the active parent design when feedback supersedes it, rather than leaving the correction only in a completed slice's notes. Put reusable project principles in the existing canonical project instructions; keep feature-specific decisions in the parent. Confirm a proposed generalization through an existing approval or triage conversation, and update its owner rather than duplicating it across records.
+
 ## Save approved plans
 
 Before implementation, preserve the approved brief, design, slice criteria, and dependency graph so later agents can retrieve the same plan:
@@ -24,7 +26,13 @@ Before implementation, preserve the approved brief, design, slice criteria, and 
 - **Hosted records:** update the canonical body, mark the approved plan revision and date when the format permits, and rely on the tracker's native history. If it has no usable revision history, follow the project's durable document convention or ask where approval should be preserved. Do not add a comment solely to snapshot the body.
 - **Both:** save each part appropriately and link them, without creating competing sources of truth.
 
-Report the saved reference. If saving/committing fails or the user declines the required commit, report the blocker rather than starting implementation. Material plan changes need renewed approval. Give delegates the parent, slice, and approved-plan references.
+Report the saved reference. If saving/committing fails or the user declines the required commit, report the blocker rather than starting production implementation. Disposable shaping prototypes are not implementation baselines. Changes to scope, committed outcomes, consequential behavior, safety, or shared contracts need renewed approval. Ordinary simplification of provisional layout, grouping, disclosure, or copy can proceed when it preserves those commitments and meaningful control. Give delegates the parent, slice, approved-plan references, and relevant superseding decisions; approval is a change-control boundary, not proof of design quality.
+
+## Own design judgment and report evidence
+
+The coordinator remains accountable for a coherent experience; delegate agreement cannot certify it. Use interaction consultation for a concrete uncertainty, not a mandatory approval sequence. When seeking an independent alternative, provide the job and genuine constraints before the preferred solution. Preserve the recommendation and its trade-offs when comparing it with the plan; do not narrow the task to defending approved choices. If a follow-up uses a fresh delegate, supply the prior recommendation explicitly rather than implying conversational memory.
+
+Keep verified behavior, observed experience findings, and unresolved uncertainty distinct. Report the job exercised and specific observations, not a blanket interaction PASS. Expert inspection is not actual-user usability testing. Investigate uncertainty central to discovering, completing, or recognizing the job proportionately, or obtain explicit user acceptance of that uncertainty before affected completion; absence of a demonstrated defect is not evidence of usability. This does not waive demonstrated material defects, security failures, or required verification. Use existing design approval or triage paths, not a new gate.
 
 ## Finish truthfully
 
